@@ -10,31 +10,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import style
 import io
-# import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-
-global chatbot_version
-chatbot_version = 4
-
-# #chatbot_v3
-if chatbot_version == 3:
-    from inference import process_questions
-    process_questions(f"test")
-
-# chatbot_v4
-if chatbot_version == 4:
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    import torch
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
-    tokenizer.padding_side = "left"
-    print("Loaded tokenizer")
-    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
-    print("Loaded model")
 
 client = discord.Client(intents=discord.Intents.default())
 
-token = open("token.txt", "r").read()
+token = open("secret/token.txt", "r").read()
 global admin_name
 global admin_required
 global current_guild_id
@@ -43,14 +23,14 @@ last_bot_answer = ""
 current_guild_id = 619226759115571221
 admin_required = True
 admin_name = "gustasvs"
-bot_name = "olll funny numbber 969"
+bot_name = "foodclub-bot"
 
 chat_step = 0
 
-sasveicinasanas = []
-with open("sasveicinasanas.txt", "r") as f:
+greetings = []
+with open("public/greetings.txt", "r") as f:
     for line in f:
-        sasveicinasanas.append(str(line)[:-1])
+        greetings.append(str(line)[:-1])
 
 def community_report(guild):
     online = 0
@@ -125,7 +105,7 @@ async def on_message(message):
     if message_acceptable(message):
 
         # await message.channel.trigger_typing()
-        # for mes in sasveicinasanas:
+        # for mes in greetings:
         #     if mes == msg.lower():
         #         messageee = choice([f"bonjour {message.author.name}", "buenos dias", f"buenos dias {message.author.name}", f"sup {message.author.name}", "labas vakaras moi latgalīsu drauks", "yo, whats up?", "YO KAS LABS?", "man iet labi pastaasti kaa iet tev? (ar kājām?)", f"wyd {message.author.name}?", str(mes) + f" {message.author.name} xd !!!"])
         #         await message.channel.send(messageee)
