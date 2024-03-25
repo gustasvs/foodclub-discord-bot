@@ -22,25 +22,39 @@ def wait(sleep_len, message="", step=0, pbar=None):
 
 def fetch_data(driver, orders_id):
     try:
-        driver.get(f'https://app.foodclub.lv/{orders_id}/')
-        
-        with open(f'secret/{cookies_name}.pkl', 'rb') as file:
-            cookies = pickle.load(file) 
-            for cookie in cookies:
-                driver.add_cookie(cookie)
+        url = f"https://api.lunch2.work/app/dishlists/history/525/{orders_id}?per_page=all&lang=lv"
+        headers = {
+            'Authorization': 'Bearer 95911|laravel_sanctum_cf5I2jrzVp2xRAha2MBCuJa3u956PMBbl3QkOmaA1b77b63b',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+        response = requests.get(url, headers=headers)
 
-        driver.get('https://www.instagram.com/accounts/login')
+        data = response.json()
 
-        driver.find_element(by=By.XPATH, value="//button[text()='Not Now']").click()
-        wait(1, "Skipping save login")
-        driver.get(f'https://www.instagram.com/{orders_id}/')
-        wait(7, "Getting followers")
+        print(data)
+
+        users = []
+
+        if 'orders' in data:
+            for order in data['orders']:
+                user_info = order.get('user', {})
+                email = user_info.get('email', '')
+                first_name = user_info.get('first_name', '')
+                last_name = user_info.get('last_name', '')
+                
+                users.append({'email': email, 'first_name': first_name, 'last_name': last_name})
+
+
+        for user in users:
+            print(user)
+
 
     except Exception as e:
-        wait(0, f"Error while following: {e}")
+        wait(0, f"error: {e}")
         pass
     finally:
-        driver.quit()
+        pass
 
 
 def set_local_storage(driver, data):
@@ -53,7 +67,7 @@ if __name__ == "__main__":
 
     driver.get(f'https://app.foodclub.lv/')
 
-    wait(3, "loading page")    
+    wait(1, "loading page")    
     
     with open(f'secret/{cookies_name}.pkl', 'rb') as file:
         cookies = pickle.load(file) 
@@ -68,8 +82,6 @@ if __name__ == "__main__":
 
     driver.get(f'https://app.foodclub.lv/')
 
-    wait(2, "LOGGED IN")
-    # https://api.lunch2.work/app/dishlists/history/525/2132?per_page=all&lang=lv
     fetch_data(driver, 2132)
     driver.quit()
     pass 

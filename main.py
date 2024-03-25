@@ -14,13 +14,16 @@ import io
 
 client = discord.Client(intents=discord.Intents.default())
 
-token = open("secret/token.txt", "r").read()
+bot_logins = open("secret/bot_logins", "r").read()
+token = bot_logins.split("\n")[0]
+bot_id = bot_logins.split("\n")[1]
+
 global admin_name
 global admin_required
 global current_guild_id
 
 last_bot_answer = ""
-current_guild_id = 619226759115571221
+current_guild_id = 1221861873532797078
 admin_required = True
 admin_name = "gustasvs"
 bot_name = "foodclub-bot"
@@ -91,7 +94,7 @@ async def on_message(message):
     # time.sleep(20)
     msg = message.content
     tagged = False
-    if "<@!1035103791189594118>" in msg:
+    if f"<@!{bot_id}>" in msg:
         msg = msg[24:]
         tagged = True
     global current_guild
