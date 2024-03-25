@@ -4,7 +4,7 @@ import io
 import sys
 import discord
 
-from guild_stats_helpers import community_report
+from discord_utils.guild_stats_helpers import community_report
 
 async def handle_on_message(
     client, message, bot_name, admin_name, admin_required, bot_id, current_guild
@@ -24,88 +24,90 @@ async def handle_on_message(
     
     
     try: 
-        await message.channel.trigger_typing()
+        await message.channel.typing()
     except Exception as e:
         print(f"error: {e}")
         pass
 
+    match msg.lower().split(" ")[0]:
+        case "logout":
+            if message.author.name == admin_name or admin_required == False:
+                await message.channel.send(f"**logging out!**")
+                await client.close()
+                exit(0)
+            else:
+                await message.channel.send(f"*permission denied*")
 
-    if "glogout" == msg.lower():
-        if message.author.name == admin_name or admin_required == False:
-            await message.channel.send(f"**logging out!**")
-            await client.close()
-            exit(0)
-        else:
-            await message.channel.send(f"*permission denied*")
+        case "exit":
+            if message.author.name == admin_name or admin_required == False:
+                letters = string.ascii_lowercase + string.ascii_uppercase
+                mes = ""
+                for e in range(random.randint(4, 12)):
+                    streng = "".join(
+                        random.choice(letters) for i in range(random.randint(2, 20))
+                    )
+                    if random.randint(1, 2) == 1:
+                        cip = random.randint(1, 3)
+                        if cip == 1:
+                            streng = "*" + streng
+                            streng += "*"
+                        if cip == 2:
+                            streng = "**" + streng
+                            streng += "**"
+                        if cip == 3:
+                            streng = "***" + streng
+                            streng += "***"
 
-    elif "gcrash" == msg.lower():
-        if message.author.name == admin_name or admin_required == False:
-            letters = string.ascii_lowercase + string.ascii_uppercase
-            mes = ""
-            for e in range(random.randint(4, 12)):
-                streng = "".join(
-                    random.choice(letters) for i in range(random.randint(2, 20))
+                    mes += streng
+                    mes += "\n"
+                await message.channel.send(mes)
+                await message.channel.send(
+                    "*error 0x0000003b*\nquitting aplication\n***quitti***\n*ng ap*"
                 )
-                if random.randint(1, 2) == 1:
-                    cip = random.randint(1, 3)
-                    if cip == 1:
-                        streng = "*" + streng
-                        streng += "*"
-                    if cip == 2:
-                        streng = "**" + streng
-                        streng += "**"
-                    if cip == 3:
-                        streng = "***" + streng
-                        streng += "***"
+                await client.close()
+                sys.exit()
+            else:
+                await message.channel.send(f"**permission denied**")
 
-                mes += streng
-                mes += "\n"
-            await message.channel.send(mes)
+        case "help":
             await message.channel.send(
-                "*error 0x0000003b*\nquitting aplication\n***quitti***\n*ng ap*"
-            )
-            await client.close()
-            sys.exit()
-        else:
-            await message.channel.send(f"**permission denied**")
-
-    elif "ghelp" in msg.lower():
-        await message.channel.send(
-            "```gspam - gspam @kuru\ncik on - cik on serveri\nkas on - kuri tiesi on\ncik vispar - cik vispar serveri dalibnieku\nglogout - izslegt botu\njebkura cita zina - bots pats izdoma ko atbildeet :D```"
-        )
-
-    elif "gspam" in msg.lower():
-        mention_id = message.mentions[0].id
-        target = client.get_user(mention_id)
-        saturs = message.content[10 + len(str(mention_id)) :]
-        await message.channel.send(f"Spamming <@{mention_id}>")
-        for j in range(5):
-            await target.send(
-                f"<@{mention_id}> message from {message.author.name} \n-->       ***{saturs}***        <--"
+                f"```!logout - logs out\n!exit - exits\n!spam - spams user\n!howmany - shows online users\n!who - shows online users\n!total - shows total users```"
             )
 
-    elif "cik on" in msg.lower():
-        online, afk, offline = community_report(current_guild)
-        await message.channel.send(
-            f"```Online - {online + afk}\nOffline - {offline}```"
-        )
+        case "spam":
+            mention_id = message.mentions[0].id
+            target = client.get_user(mention_id)
+            saturs = message.content[10 + len(str(mention_id)) :]
+            await message.channel.send(f"Spamming <@{mention_id}>")
+            for _ in range(5):
+                await target.send(
+                    f"<@{mention_id}> message from {message.author.name} \n-->       ***{saturs}***        <--"
+                )
 
-    elif "kas on" in msg.lower():
-        on = []
-        for mem in current_guild.members:
-            if str(mem.status) != "offline":
-                on.append(mem.name.lower())
-        on.sort()
-        messageee = str()
-        for mem in on:
-            messageee += str(mem) + "\n"
-        await message.channel.send(f"```{messageee}```")
+        case "howmany":
+            online, afk, offline = community_report(current_guild)
+            await message.channel.send(
+                f"```Online - {online + afk}\nOffline - {offline}```"
+            )
 
-    elif "cik vispar" in msg.lower():
-        await message.channel.send(f"```{current_guild.member_count}```")
+        case "who":
+            on = []
+            for mem in current_guild.members:
+                if str(mem.status) != "offline":
+                    on.append(mem.name.lower())
+            on.sort()
+            messageee = str()
+            for mem in on:
+                messageee += str(mem) + "\n"
+            await message.channel.send(f"```{messageee}```")
 
-    else:
-        pass
+        case "total":
+            await message.channel.send(f"```{current_guild.member_count}```")
+        
+        case _:
+            bot_answer = random_answer(message)
+            bot_answer = randomize_text(bot_answer)
+            await message.channel.send(bot_answer)
 
 
 def message_acceptable(message, bot_name=""):

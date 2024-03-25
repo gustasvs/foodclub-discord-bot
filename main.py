@@ -16,6 +16,13 @@ from discord_utils.message_helpers import handle_on_message
 defIntents = discord.Intents.default()
 defIntents.members = True
 defIntents.message_content = True
+defIntents.guilds = True
+defIntents.guild_messages = True
+defIntents.guild_reactions = True
+defIntents.guild_typing = True
+defIntents.dm_messages = True
+defIntents.dm_reactions = True
+defIntents.dm_typing = True
 client = discord.Client(intents=defIntents)
 
 bot_credentials = open("secret/bot_credentials", "r").read()
@@ -58,6 +65,13 @@ async def on_message(message):
         )
     except Exception as e:
         print(f"error: {e}")
+        error_message = f""" 
+*Something went ☕ ... * :( 
+```diff
+ - Error: {e}
+```
+|| a cheeky fix|| is required from the developer!"""
+        await message.channel.send(error_message)
     finally:
         pass
 
