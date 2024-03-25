@@ -14,9 +14,13 @@ import io
 
 client = discord.Client(intents=discord.Intents.default())
 
-bot_logins = open("secret/bot_logins", "r").read()
-token = bot_logins.split("\n")[0]
-bot_id = bot_logins.split("\n")[1]
+bot_credentials = open("secret/bot_credentials", "r").read()
+print("bot_credentials -> ", bot_credentials)
+token = bot_credentials.split("\n")[0]
+bot_id = bot_credentials.split("\n")[1]
+
+# print(token, bot_id)
+token = "kNGBsfrgys-bu44DSsaStNMbqCXLFaxl"
 
 global admin_name
 global admin_required
@@ -85,7 +89,7 @@ async def on_ready():
     print(f"server name - {current_guild}")
     print(f"client info - {client.user}")
 
-    await client.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name="Teletubbies"))
+    await client.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name="latest foodclub.lv news"))
 
 
 @client.event
@@ -179,65 +183,7 @@ async def on_message(message):
             await message.channel.send(f"```{current_guild.member_count}```")
 
         else:
-
-            if chatbot_version == 3:
-
-                answers_list = process_questions(msg)
-
-                answerss = []
-                best_score = 0
-
-                for index, answer in enumerate(answers_list):
-                    if answer['best_score'] == None: # ja botsd nevar izdomat kkada imeesla deel...
-                        answerss.append(random_answer(message))
-                    else:
-                        best_score = int(answer['best_score'])
-                        for e in range(len(answer['answers'])):
-                            answ = answer['answers'][e]
-                            scor = int(answer['scores'][e])
-                            if str(answ[-1]).isalpha():
-                                answ = str(answ) + "."
-                            answ.capitalize()
-                            print(answ)
-                            for j in range(scor):
-                                answerss.append(answ)
-                                
-                        
-                print(len(answerss), best_score)
-                bot_answer = random.choice(answerss)
-
-                bot_answer = randomize_text(bot_answer)            
-
-                if tagged:
-                    await message.channel.send(f"<@{message.author.id}> {bot_answer}") 
-                else:
-                    await message.channel.send(bot_answer) 
-            
-            if chatbot_version == 4:    
-                global chat_step
-                global last_bot_answer
-                global bot_input_ids
-                global chat_history_ids
-                new_user_input_ids = tokenizer.encode(msg + tokenizer.eos_token, return_tensors='pt')
-                if chat_step == 0:
-                    bot_input_ids = new_user_input_ids
-                else:
-                    bot_input_ids = torch.cat([chat_history_ids, new_user_input_ids], dim=-1)
-                chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
-                
-                bot_answer = tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
-                
-                if bot_answer == last_bot_answer or 'not sure' in bot_answer.lower():
-                    chat_step = 0
-                    bot_answer = random_answer(message)
-                else:
-                    bot_answer = randomize_text(bot_answer)
-                    # chat_step += 1
-
-                print(bot_answer)
-                
-                last_bot_answer = bot_answer
-                await message.channel.send(bot_answer)
+            pass
                 
 
 
