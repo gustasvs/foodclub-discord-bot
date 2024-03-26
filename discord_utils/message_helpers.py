@@ -34,19 +34,46 @@ async def handle_on_message(
         case "link":
             profiles = load_profiles()
             if len(message.mentions) == 0:
-                await message.channel.send(f"! to link, you (:index_pointing_at_the_viewer:) need to @mention a profile !\nexample: `link @<{bot_id}> Foodclub User`")
+                embed = discord.Embed(title="⚠️ Error ⚠️", color=0xe74c3c)
+                embed.add_field(name="Part 1: discord user", value=f"use `@mention` feature\n\n**Example:** link `@Someone` Foodclub User", inline=True)
+                embed.add_field(name="Part 2: foodclub user", value=f"after @mentioning a discord user, write foodclub users name\n\n**Example:** link @Someone `Foodclub User`", inline=False)
+                # embed.add_field(name="Need Further Assistance?", value="If you're still encountering issues or have any questions, don't hesitate to reach out to our support team. We're here to help!", inline=False)
+                await message.channel.send(embed=embed)
                 return
+            
             discord_id = message.mentions[0].id
-            foodclub_user_email = get_user_profile(message.author.id).get('email-fc')
-            link_discord(foodclub_user_email, discord_id, message.author.name)
-            await message.channel.send(f":chains:  {message.author.name} :chains: <@{discord_id}> :chains: ")
+            foodclub_user_name = message.content.split(" ", 2)[-1]
+            user_profile = get_user_profile(foodclub_user_name, 'name-fc')
+            if user_profile is None:
+                embed = discord.Embed(color=0xe74c3c)
+                embed.add_field(name="User not found", value=f"User {foodclub_user_name} not found in the database", inline=False)
+                embed.add_field(name="Dont know users?", value="Use `profiles` command to see all users", inline=False)
+                await message.channel.send(embed=embed)
+            else:
+                foodclub_user_email = user_profile.get('email-fc')
+                link_discord(foodclub_user_email, discord_id, message.mentions[0].name)
+                await message.channel.send(f":chains:  {foodclub_user_name} :chains: <@{discord_id}> :chains: ")
 
-        case "profiles":
+        case "profiles" | "users":
             profiles = load_profiles()
-            res = "Foodclub users:\n"
+            embed = discord.Embed(title=":yum: Bot user list: :pizza:", color=0x2ecc71)
+
+            name_column = ""
+            discord_username_column = ""
+
             for profile in profiles:
-                res += str(profile.get('name')) + profile.get('discord_id') + "\n"
-            await message.channel.send(f"```{res}```")
+                name_column += f"{profile.get('name-fc', 'N/A')}\n"
+                discord_username_column += f"{profile.get('name-dc', 'N/A')}\n"
+
+            if len(name_column) > 1024 or len(discord_username_column) > 1024:
+                # Handle the case where content is too long (e.g., split into multiple embeds, truncate, etc.)
+                pass
+            else:
+                embed.add_field(name="Foodclub name", value=name_column, inline=True)
+                embed.add_field(name="Discord Username", value=discord_username_column, inline=True)
+
+            await message.channel.send(embed=embed)
+
         
         case "orders":
             profiles = load_profiles()

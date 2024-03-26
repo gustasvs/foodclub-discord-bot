@@ -14,9 +14,12 @@ def save_profiles(data):
     with open('secret/user_profiles.json', 'w') as file:
         json.dump(data, file, indent=4)
 
-def get_user_profile(user_id):
+def get_user_profile(value, field='email-fc'):
     profiles = load_profiles()
-    return profiles.get(str(user_id), {})
+    for profile in profiles:
+        if profile.get(field) == str(value):
+            return profile
+    return None
 
 def set_user_profile(user_id, data):
     """Set user profile data"""

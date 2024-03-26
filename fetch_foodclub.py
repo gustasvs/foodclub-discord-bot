@@ -84,9 +84,10 @@ if __name__ == "__main__":
 
     # driver.get(f'https://app.foodclub.lv/')
 
-    users = fetch_data(2147)
+    users = fetch_data(2146)
 
     for user in users:
         user_id = user['email-fc']
+        print(f"Setting user profile for {user_id}")
         set_user_profile(user_id, user)
     
