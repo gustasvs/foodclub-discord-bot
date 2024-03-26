@@ -1,6 +1,3 @@
-tensorflow-gpu>=1.12.0,==1.*
-tqdm
-colorama
-regex
-python-Levenshtein
-requests
+discord
+matplotlib
+selenium
