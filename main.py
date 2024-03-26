@@ -12,6 +12,8 @@ import io
 
 from discord_utils.message_helpers import handle_on_message
 
+from public.settings import *
+
 # https://stackoverflow.com/questions/74071838/cant-receive-the-message-content-with-discord-bot
 defIntents = discord.Intents.default()
 defIntents.members = True
@@ -30,15 +32,6 @@ bot_id = bot_credentials.split("\n")[0]
 token = bot_credentials.split("\n")[1]
 
 
-last_bot_answer = ""
-current_guild_id = 1221861873532797078
-current_guild = None
-
-admin_required = True
-admin_name = "gustasvs"
-bot_name = "foodclub-bot"
-
-
 @client.event
 async def on_ready():
     global current_guild 
@@ -55,7 +48,6 @@ async def on_ready():
     )
 
 
-
 @client.event
 async def on_message(message):
     try:
@@ -70,7 +62,7 @@ async def on_message(message):
 ```diff
  - Error: {e}
 ```
-|| a cheeky fix|| is required from the developer!"""
+a || cheeky fix|| is required from the developer!"""
         await message.channel.send(error_message)
     finally:
         pass

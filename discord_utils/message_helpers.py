@@ -5,6 +5,7 @@ import sys
 import discord
 
 from discord_utils.guild_stats_helpers import community_report
+from discord_utils.user_profiles import load_profiles, set_user_profile, get_user_profile, link_discord
 
 async def handle_on_message(
     client, message, bot_name, admin_name, admin_required, bot_id, current_guild
@@ -30,6 +31,30 @@ async def handle_on_message(
         pass
 
     match msg.lower().split(" ")[0]:
+        case "link":
+            profiles = load_profiles()
+            if len(message.mentions) == 0:
+                await message.channel.send(f"! to link, you (:index_pointing_at_the_viewer:) need to @mention a profile !\nexample: `link @<{bot_id}> Foodclub User`")
+                return
+            discord_id = message.mentions[0].id
+            foodclub_user_email = get_user_profile(message.author.id).get('email-fc')
+            link_discord(foodclub_user_email, discord_id, message.author.name)
+            await message.channel.send(f":chains:  {message.author.name} :chains: <@{discord_id}> :chains: ")
+
+        case "profiles":
+            profiles = load_profiles()
+            res = "Foodclub users:\n"
+            for profile in profiles:
+                res += str(profile.get('name')) + profile.get('discord_id') + "\n"
+            await message.channel.send(f"```{res}```")
+        
+        case "orders":
+            profiles = load_profiles()
+            res = "Foodclub users:\n"
+            for profile in profiles:
+                res += str(profile.get('name')) + profile.get('discord_id') + "\n"
+            await message.channel.send(f"```{res}```")
+
         case "logout":
             if message.author.name == admin_name or admin_required == False:
                 await message.channel.send(f"**logging out!**")
