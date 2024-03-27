@@ -10,7 +10,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 from public.settings import *
-from discord_utils.user_profiles import set_user_profile
+from discord_utils.user_management_helpers import set_user_profile
+from discord_utils.order_management_helpers import save_order, save_todays_orders
 
 BUSINESS_FOODCLUB_ID = 525
 
@@ -24,9 +25,9 @@ def wait(sleep_len, message="", step=0, pbar=None):
         pbar.update(step)
     time.sleep(sleep_len)
 
-def fetch_data(orders_id):
+def fetch_days_data(day_id):
     try:
-        url = f"https://api.lunch2.work/app/dishlists/history/{BUSINESS_FOODCLUB_ID}/{orders_id}?per_page=all&lang=lv"
+        url = f"https://api.lunch2.work/app/dishlists/history/{BUSINESS_FOODCLUB_ID}/{day_id}?per_page=all&lang=lv"
         headers = {
             'Authorization': foodclub_token,
             'Accept': 'application/json',
@@ -35,21 +36,28 @@ def fetch_data(orders_id):
         data = requests.get(url, headers=headers).json()
 
         users = []
+        orders = []
 
         if 'orders' in data:
             for order in data['orders']:
                 user_info = order.get('user', {})
-                email = user_info.get('email', '')
+                user_id = user_info.get('id', 0)
+                user_email = user_info.get('email', '')
                 first_name = user_info.get('first_name', '')
                 last_name = user_info.get('last_name', '')
                 
-                dishes = []
-                for item in order.get('items', []):
-                    dish_title = item.get('dish', {}).get('title', {}).get('lv', '')
-                    dishes.append(dish_title)
+                users.append({'user-id': user_id, 'email-fc': user_email, 'name-fc': first_name, 'last-name-fc': last_name})
 
-                users.append({'email-fc': email, 'name-fc': first_name, 'last-name-fc': last_name}) # , 'dishes': dishes})
-        return users
+                for item in order.get('items', []):
+                    dish_id = item.get('dish', {}).get('id', 0)
+                    dish_title = item.get('dish', {}).get('title', {}).get('lv', '')
+                    dish_category_title = item.get('dish', {}).get('category', {}).get('title', {}).get('lv', '')
+                    dish_price = item.get('dish', {}).get('price', 0)
+                    
+                    user_order = {'day-id': day_id, 'user-id': user_id, 'dish-id': dish_id, 'dish-title': dish_title, 'dish-category-title': dish_category_title, 'dish-price': dish_price}
+                    orders.append(user_order)
+
+        return users, orders
 
 
     except Exception as e:
@@ -65,29 +73,18 @@ def set_local_storage(driver, data):
 
 
 if __name__ == "__main__":
-    # driver = webdriver.Firefox(service=Service(ff_webdriver_pth))
 
-    # driver.get(f'https://app.foodclub.lv/')
+    for day_id in range(2145, 2146):
+        users, orders = fetch_days_data(day_id)
 
-    # wait(1, "loading page")    
-    
-    # with open(f'secret/{cookies_name}.pkl', 'rb') as file:
-    #     cookies = pickle.load(file) 
-    #     for cookie in cookies:
-    #         driver.add_cookie(cookie)
+        save_todays_orders(orders)
 
-    # with open(f'secret/{cookies_name}_local_storage.json', 'r') as file:
-    #     local_storage_data = json.load(file)
-    #     set_local_storage(driver, local_storage_data)
+        for user in users:
+            user_id = user['user-id']
+            print(f"Setting user profile for {user_id}")
+            set_user_profile(user_id, user)
 
-    # wait(2, "Adding cookies and local storage")
-
-    # driver.get(f'https://app.foodclub.lv/')
-
-    users = fetch_data(2146)
-
-    for user in users:
-        user_id = user['email-fc']
-        print(f"Setting user profile for {user_id}")
-        set_user_profile(user_id, user)
+        for order in orders:
+            save_order(order)
+            # print(f"Order: {order}")
     
