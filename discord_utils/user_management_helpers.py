@@ -1,8 +1,10 @@
 import json
 
+USER_PROFILES_PATH = 'secret/users.json'
+
 def load_profiles():
     try:
-        with open('secret/user_profiles.json', 'r') as file:
+        with open(USER_PROFILES_PATH, 'r') as file:
             return json.load(file)
     except json.JSONDecodeError:
         return []
@@ -11,7 +13,7 @@ def load_profiles():
         return []
 
 def save_profiles(data):
-    with open('secret/user_profiles.json', 'w') as file:
+    with open(USER_PROFILES_PATH, 'w') as file:
         json.dump(data, file, indent=4)
 
 def get_user_profile(value, field='email-fc'):
@@ -36,7 +38,7 @@ def set_user_profile(user_id, data):
 def link_discord(user_id, discord_id, discord_name):
     profiles = load_profiles()
     for i, profile in enumerate(profiles):
-        if profile.get('email-fc') == str(user_id):
+        if profile.get('user-id') == str(user_id):
             profiles[i]['id-dc'] = discord_id
             profiles[i]['name-dc'] = discord_name
             save_profiles(profiles)
