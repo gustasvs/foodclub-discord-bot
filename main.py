@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import io
 
-from discord_utils.message_helpers import handle_on_message
+from discord_utils.on_message import handle_on_message
 
 from public.settings import *
 
@@ -59,8 +59,8 @@ async def on_message(message):
         print(f"error: {e}")
         error_message = f""" 
 *Something went ☕ ... * :( 
-```diff
- - Error: {e}
+```bash
+" - Error: {e}"
 ```
 a || cheeky fix|| is required from the developer!"""
         await message.channel.send(error_message)

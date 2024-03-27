@@ -31,7 +31,14 @@ async def handle_link_command(message):
 async def handle_ratings_command(message):
     ratings = get_ratings()
     embed = discord.Embed(title="🍽️ Dish Ratings 🍽️", color=0x3498db)
-        
+    for rating in ratings:
+        # 1 to 7
+        for dish in rating:
+            embed.add_field(dish.get('dish-title', ''), value="", inline=True)
+            embed.add_field(name="Rating", value=dish.get('rating', ''), inline=True)
+            embed.add_field(name="Votes", value=dish.get('votes', ''), inline=True)
+            embed.add_field(name="Category", value=dish.get('dish-category-title', ''), inline=True)
+    await message.channel.send(embed=embed)
 
 async def handle_profiles_command(message):
     profiles = load_profiles()
@@ -121,7 +128,6 @@ async def handle_help_command(message):
                     inline=False)
 
     await message.channel.send(embed=embed)
-
 
 async def hanlde_default_command(message):
     bot_answer = random_answer(message)
