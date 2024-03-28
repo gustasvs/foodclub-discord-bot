@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import io
 
-from discord_utils.on_message import handle_on_message, handle_reaction_add
+from discord_utils.handle_message import handle_on_message, handle_reaction_add
 
 from public.settings import *
 
