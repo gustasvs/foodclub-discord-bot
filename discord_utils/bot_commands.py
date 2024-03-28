@@ -5,6 +5,7 @@ from discord_utils.user_management_helpers import load_profiles, get_user_profil
 from discord_utils.guild_stats_helpers import community_report
 from discord_utils.order_management_helpers import get_ratings
 from discord_utils.order_management_helpers import get_todays_orders
+from discord_utils.on_message import value_to_emoji
 
 async def handle_link_command(message):
     profiles = load_profiles()
@@ -32,7 +33,7 @@ async def handle_link_command(message):
 
 async def handle_ratings_command(message):
     ratings = get_ratings()
-    
+
     embed = discord.Embed(title=":fork_knife_plate: Ratings :fork_knife_plate:", color=0x3498db)
     
     for rating, dishes in ratings.items():
@@ -44,7 +45,7 @@ async def handle_ratings_command(message):
         # Combine all dish titles for the current rating into a single string
         dishes_list = "\n".join(dishes)
         # Add a field to the embed with the rating value as the name and the dish titles as the value
-        embed.add_field(name=f"Rating: {rating_value}", value=dishes_list, inline=False)
+        embed.add_field(name=f"{value_to_emoji(rating_value)}", value=dishes_list, inline=False)
 
     await message.channel.send(embed=embed)
 

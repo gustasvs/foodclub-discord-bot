@@ -32,13 +32,13 @@ def emoji_to_value(emoji):
 
 def value_to_emoji(value):
     value_emoji_map = {
-        7: ":regional_indicator_s:",
-        6: ":regional_indicator_a:",
-        5: ":regional_indicator_b:",
-        4: ":regional_indicator_c:",
-        3: ":regional_indicator_d:",
-        2: ":regional_indicator_e:",
-        1: ":regional_indicator_f:",
+        7: "🇸",
+        6: "🇦",
+        5: "🇧",
+        4: "🇨",
+        3: "🇩",
+        2: "🇪",
+        1: "🇫",
     }
     return value_emoji_map.get(value, "N/A")
 
