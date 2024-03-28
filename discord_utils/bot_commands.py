@@ -5,7 +5,7 @@ from discord_utils.user_management_helpers import load_profiles, get_user_profil
 from discord_utils.guild_stats_helpers import community_report
 from discord_utils.order_management_helpers import get_ratings
 from discord_utils.order_management_helpers import get_todays_orders
-from discord_utils.on_message import value_to_emoji
+from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 
 async def handle_link_command(message):
     profiles = load_profiles()
@@ -89,8 +89,8 @@ async def handle_orders_command(message, tracked_messages):
     for category, orders in categorised_orders.items():
         sorted_orders = sorted(orders, key=lambda x: x['dish-title'])
         categorised_orders[category] = sorted_orders
+
     for category, orders in categorised_orders.items():
-        await message.channel.typing()
         await message.channel.send(f"**{category}**")
         for order in orders:
             order_message = f"- {order['dish-title']}"

@@ -6,6 +6,7 @@ import sys
 from discord_utils.guild_stats_helpers import community_report
 from discord_utils.user_management_helpers import get_profile_from_discord_id
 from discord_utils.order_management_helpers import save_order, rate_order, get_ratings
+from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 from discord_utils.bot_commands import (
     handle_link_command,
     handle_ratings_command,
@@ -18,31 +19,9 @@ from discord_utils.bot_commands import (
     hanlde_default_command,
 )
 
-def emoji_to_value(emoji):
-    emoji_value_map = {
-        "🇸": 7,
-        "🇦": 6,
-        "🇧": 5,
-        "🇨": 4,
-        "🇩": 3,
-        "🇪": 2,
-        "🇫": 1,
-    }
-    return emoji_value_map.get(emoji, 0)
-
-def value_to_emoji(value):
-    value_emoji_map = {
-        7: "🇸",
-        6: "🇦",
-        5: "🇧",
-        4: "🇨",
-        3: "🇩",
-        2: "🇪",
-        1: "🇫",
-    }
-    return value_emoji_map.get(value, "N/A")
-
 async def handle_reaction_add(client, reaction, user, tracked_messages):
+
+    await reaction.message.channel.typing()
 
     if reaction.message.id in tracked_messages and user != client.user:
         print(reaction.emoji, str(reaction.emoji))
