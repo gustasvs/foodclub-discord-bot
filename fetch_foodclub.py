@@ -3,13 +3,9 @@ import pickle
 import requests
 import time
 import json
+import os
 
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-
-from public.settings import *
+from public.settings import CACHE_PATH
 from discord_utils.user_management_helpers import set_user_profile
 from discord_utils.order_management_helpers import save_order, save_todays_orders
 
@@ -20,12 +16,24 @@ foodclub_token = ''
 with open(f'secret/foodclub_credentials', 'r') as file:
     foodclub_token = file.read()
 
-def wait(sleep_len, message="", step=0, pbar=None):
-    if pbar:
-        pbar.update(step)
-    time.sleep(sleep_len)
+def cache_response(response, filename):
+    os.makedirs(CACHE_PATH, exist_ok=True)
+    with open(f'{CACHE_PATH}/{filename}.pkl', 'wb') as file:
+        pickle.dump(response, file)
+
+def load_cached_response(filename):
+    try:
+        with open(f'{CACHE_PATH}/{filename}.pkl', 'rb') as file:
+            return pickle.load(file)
+    except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+        return None
 
 def fetch_days_data(day_id):
+    cached_data = load_cached_response(str(day_id))
+    if cached_data is not None:
+        print(f"Using cached data for day {day_id}")
+        return cached_data
+
     try:
         url = f"https://api.lunch2.work/app/dishlists/history/{BUSINESS_FOODCLUB_ID}/{day_id}?per_page=all&lang=lv"
         headers = {
@@ -33,7 +41,19 @@ def fetch_days_data(day_id):
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
-        data = requests.get(url, headers=headers).json()
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            cache_response(data, str(day_id))
+            return data
+        else:
+            raise Exception(f"Failed to fetch data: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+
+def get_data(day_id):
+    try:
+        data = fetch_days_data(day_id)
 
         users = []
         orders = []
@@ -61,10 +81,8 @@ def fetch_days_data(day_id):
 
 
     except Exception as e:
-        wait(0, f"error: {e}")
-        pass
-    finally:
-        pass
+        print(f"Error fetching data: {e}")
+        return [], []
 
 
 def set_local_storage(driver, data):
@@ -75,7 +93,7 @@ def set_local_storage(driver, data):
 if __name__ == "__main__":
 
     for day_id in range(2145, 2146):
-        users, orders = fetch_days_data(day_id)
+        users, orders = get_data(day_id)
 
         save_todays_orders(orders)
 
@@ -86,5 +104,4 @@ if __name__ == "__main__":
 
         for order in orders:
             save_order(order)
-            # print(f"Order: {order}")
     

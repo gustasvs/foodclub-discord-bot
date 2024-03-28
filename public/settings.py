@@ -7,4 +7,8 @@ admin_name = "gustasvs"
 bot_name = "foodclub-bot"
 
 cookies_name = "cookies"
-ff_webdriver_pth = "public/geckodriver.exe"
+FF_WEBDRIVER_PATH = "public/geckodriver.exe"
+
+CACHE_PATH = 'secret/cache'
+ORDER_PATH = 'secret/orders.json'
+USER_PROFILES_PATH = 'secret/users.json'

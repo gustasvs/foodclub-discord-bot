@@ -160,7 +160,7 @@ async def handle_help_command(message):
 
     await message.channel.send(embed=embed)
 
-async def hanlde_default_command(message):
+async def handle_default_command(message):
     bot_answer = random_answer(message)
     bot_answer = randomize_text(bot_answer)
     await message.channel.send(bot_answer)

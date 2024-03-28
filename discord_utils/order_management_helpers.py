@@ -1,6 +1,5 @@
 import json
-
-ORDER_PATH = 'secret/orders.json'
+from public.settings import ORDER_PATH
 
 def save_order(new_order):
     try:

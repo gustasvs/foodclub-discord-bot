@@ -5,7 +5,7 @@ import time
 import json
 from public.settings import *
 
-driver = webdriver.Firefox(service=Service(ff_webdriver_pth))
+driver = webdriver.Firefox(service=Service(FF_WEBDRIVER_PATH))
 
 driver.get("https://app.foodclub.lv/")
 

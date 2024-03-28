@@ -16,7 +16,7 @@ from discord_utils.bot_commands import (
     handle_spam_command,
     handle_online_command,
     handle_total_command,
-    hanlde_default_command,
+    handle_default_command,
 )
 
 async def handle_reaction_add(client, reaction, user, tracked_messages):
@@ -129,7 +129,7 @@ async def handle_on_message(
             await handle_total_command(message, current_guild)
         
         case _:
-            await hanlde_default_command(message)
+            await handle_default_command(message)
 
 
 def message_acceptable(message, bot_name=""):

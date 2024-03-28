@@ -1,6 +1,5 @@
 import json
-
-USER_PROFILES_PATH = 'secret/users.json'
+from public.settings import USER_PROFILES_PATH
 
 def load_profiles():
     try:
@@ -28,7 +27,7 @@ def set_user_profile(user_id, data):
     profiles = load_profiles()
     exists = False
     for i, profile in enumerate(profiles):
-        if profile.get('email-fc') == str(user_id):
+        if profile.get('user-id') == user_id:
             exists = True 
     if not exists:
         profiles.append(data)
