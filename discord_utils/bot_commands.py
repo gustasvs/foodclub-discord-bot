@@ -1,9 +1,10 @@
 import discord
 import random
 
-from order_management_helpers import get_ratings
-from user_management_helpers import load_profiles, get_user_profile, link_discord
-from guild_stats_helpers import community_report
+from discord_utils.user_management_helpers import load_profiles, get_user_profile, link_discord
+from discord_utils.guild_stats_helpers import community_report
+from discord_utils.order_management_helpers import get_ratings
+from discord_utils.order_management_helpers import get_todays_orders
 
 async def handle_link_command(message):
     profiles = load_profiles()
@@ -28,17 +29,25 @@ async def handle_link_command(message):
         link_discord(foodclub_user_id, discord_id, message.mentions[0].name)
         await message.channel.send(f":chains:  {foodclub_user_name} :chains: <@{discord_id}> :chains: ")
 
+
 async def handle_ratings_command(message):
     ratings = get_ratings()
-    embed = discord.Embed(title="🍽️ Dish Ratings 🍽️", color=0x3498db)
-    for rating in ratings:
-        # 1 to 7
-        for dish in rating:
-            embed.add_field(dish.get('dish-title', ''), value="", inline=True)
-            embed.add_field(name="Rating", value=dish.get('rating', ''), inline=True)
-            embed.add_field(name="Votes", value=dish.get('votes', ''), inline=True)
-            embed.add_field(name="Category", value=dish.get('dish-category-title', ''), inline=True)
+    
+    embed = discord.Embed(title=":fork_knife_plate: Ratings :fork_knife_plate:", color=0x3498db)
+    
+    for rating, dishes in ratings.items():
+        ratings[rating] = list(set(dishes))
+
+    sorted_ratings = sorted(ratings.items(), key=lambda x: x[0], reverse=True)
+    
+    for rating_value, dishes in sorted_ratings:
+        # Combine all dish titles for the current rating into a single string
+        dishes_list = "\n".join(dishes)
+        # Add a field to the embed with the rating value as the name and the dish titles as the value
+        embed.add_field(name=f"Rating: {rating_value}", value=dishes_list, inline=False)
+
     await message.channel.send(embed=embed)
+
 
 async def handle_profiles_command(message):
     profiles = load_profiles()
@@ -60,12 +69,32 @@ async def handle_profiles_command(message):
 
     await message.channel.send(embed=embed)
 
-async def handle_orders_command(message):
-    profiles = load_profiles()
-    res = "Foodclub users:\n"
-    for profile in profiles:
-        res += str(profile.get('name')) + profile.get('discord_id') + "\n"
-    await message.channel.send(f"```{res}```")
+async def handle_orders_command(message, tracked_messages):
+    todays_orders = get_todays_orders()
+
+    # get unique orders
+    unique_orders = {order['dish-id']: order for order in todays_orders}.values()
+    
+    # categorise orders
+    categorised_orders = {}
+    for order in unique_orders:
+        category = order['dish-category-title']
+        if category in categorised_orders:
+            categorised_orders[category].append(order)
+        else:
+            categorised_orders[category] = [order]
+
+    # sort orders by dish title in each category
+    for category, orders in categorised_orders.items():
+        sorted_orders = sorted(orders, key=lambda x: x['dish-title'])
+        categorised_orders[category] = sorted_orders
+    for category, orders in categorised_orders.items():
+        await message.channel.typing()
+        await message.channel.send(f"**{category}**")
+        for order in orders:
+            order_message = f"- {order['dish-title']}"
+            sent_message = await message.channel.send(order_message)
+            tracked_messages[sent_message.id] = order
 
 async def handle_spam_command(client, message):
     mention_id = message.mentions[0].id
@@ -77,10 +106,11 @@ async def handle_spam_command(client, message):
             f"<@{mention_id}> message from {message.author.name} \n-->       ***{saturs}***        <--"
         )
 
-async def handle_online_command(current_guild, message):
+async def handle_online_command(message, current_guild):
     online, afk, offline = community_report(current_guild)
     on = []
     for mem in current_guild.members:
+        print(mem.status)
         if str(mem.status) != "offline":
             on.append(mem.name.lower())
     on.sort()
@@ -88,9 +118,9 @@ async def handle_online_command(current_guild, message):
     for mem in on:
         messageee += str(mem) + "\n"
     messageee += f"```AFK: {afk}\nOffline: {offline}```"
-    await message.channel.send(f"```{messageee}```")
+    await message.channel.send(f"{messageee}")
 
-async def handle_total_command(current_guild, message):
+async def handle_total_command(message, current_guild):
     await message.channel.send(f"```{current_guild.member_count}```")
 
 async def handle_help_command(message):

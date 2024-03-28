@@ -44,3 +44,10 @@ def link_discord(user_id, discord_id, discord_name):
             save_profiles(profiles)
             return True
     return False
+
+def get_profile_from_discord_id(discord_id):
+    profiles = load_profiles()
+    for profile in profiles:
+        if profile.get('id-dc') == discord_id:
+            return profile
+    return None

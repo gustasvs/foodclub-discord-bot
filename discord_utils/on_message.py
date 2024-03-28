@@ -4,8 +4,9 @@ import io
 import sys
 
 from discord_utils.guild_stats_helpers import community_report
-from discord_utils.user_management_helpers import load_profiles, set_user_profile, get_user_profile, link_discord
-from bot_commands import (
+from discord_utils.user_management_helpers import get_profile_from_discord_id
+from discord_utils.order_management_helpers import save_order, rate_order, get_ratings
+from discord_utils.bot_commands import (
     handle_link_command,
     handle_ratings_command,
     handle_profiles_command,
@@ -17,8 +18,53 @@ from bot_commands import (
     hanlde_default_command,
 )
 
+def emoji_to_value(emoji):
+    emoji_value_map = {
+        "🇸": 7,
+        "🇦": 6,
+        "🇧": 5,
+        "🇨": 4,
+        "🇩": 3,
+        "🇪": 2,
+        "🇫": 1,
+    }
+    return emoji_value_map.get(emoji, 0)
+
+def value_to_emoji(value):
+    value_emoji_map = {
+        7: ":regional_indicator_s:",
+        6: ":regional_indicator_a:",
+        5: ":regional_indicator_b:",
+        4: ":regional_indicator_c:",
+        3: ":regional_indicator_d:",
+        2: ":regional_indicator_e:",
+        1: ":regional_indicator_f:",
+    }
+    return value_emoji_map.get(value, "N/A")
+
+async def handle_reaction_add(client, reaction, user, tracked_messages):
+
+    if reaction.message.id in tracked_messages and user != client.user:
+        print(reaction.emoji, str(reaction.emoji))
+        reaction_value = emoji_to_value(str(reaction.emoji))
+
+        user_profile = get_profile_from_discord_id(user.id)
+        if not user_profile:
+            await reaction.message.channel.send(f"User {user.display_name} not found in database")
+            return
+
+        await reaction.message.channel.send(f"{user_profile.get('name-fc')} rated **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction.message.id]['dish-title']}")
+
+        rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value)
+        
+        # tracked_messages[reaction.message.id]['votes'][user.display_name] = reaction_value
+        # tracked_messages[reaction.message.id]['voters'].append(user.id)
+
+        #* optional: remove the reaction after processing
+        # await reaction.remove(user)
+
 async def handle_on_message(
-    client, message, bot_name, admin_name, admin_required, bot_id, current_guild
+    client, message, bot_name, admin_name, admin_required, bot_id, current_guild, tracked_messages
 ):
     msg = message.content
     tagged = False
@@ -41,16 +87,16 @@ async def handle_on_message(
 
     match msg.lower().split(" ")[0]:
         case "link":
-            handle_link_command(message)
+            await handle_link_command(message)
 
         case "ratings":
-            handle_ratings_command(message)
+            await handle_ratings_command(message)
 
         case "profiles" | "users":
-            handle_profiles_command(message)
+            await handle_profiles_command(message)
 
         case "orders":
-            handle_orders_command(message)
+            await handle_orders_command(message, tracked_messages)
 
         case "logout":
             if message.author.name == admin_name or admin_required == False:
@@ -92,19 +138,19 @@ async def handle_on_message(
                 await message.channel.send(f"**permission denied**")
 
         case "help":
-            handle_help_command(message)
+            await handle_help_command(message)
 
         case "spam":
-            handle_spam_command(client, message)
+            await handle_spam_command(client, message)
 
-        case "oneline":
-            handle_online_command(message, current_guild)
+        case "online":
+            await handle_online_command(message, current_guild)
 
         case "total":
-            handle_total_command(message)
+            await handle_total_command(message, current_guild)
         
         case _:
-            hanlde_default_command(message)
+            await hanlde_default_command(message)
 
 
 def message_acceptable(message, bot_name=""):

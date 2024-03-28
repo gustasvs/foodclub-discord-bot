@@ -56,7 +56,12 @@ def get_ratings():
 
     output = {}
     for dish_id, dish_info in orders.items():
-        for rating in dish_info['dish-ratings']:
+        for rating_info in dish_info['dish-ratings']:
+            rating = rating_info['rating']  # Extract the rating value
+            # Initialize the list for this rating if it doesn't exist
+            if rating not in output:
+                output[rating] = []
+            # Append the dish title to the list for this rating
             output[rating].append(dish_info['dish-title'])
 
     return output
@@ -65,3 +70,12 @@ def save_todays_orders(orders):
     # rewrites existing todays orders
     with open('secret/todays_orders.json', 'w') as file:
         json.dump(orders, file, indent=4)
+
+def get_todays_orders():
+    try:
+        with open('secret/todays_orders.json', 'r') as file:
+            orders = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+    return orders

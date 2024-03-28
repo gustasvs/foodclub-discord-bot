@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import io
 
-from discord_utils.on_message import handle_on_message
+from discord_utils.on_message import handle_on_message, handle_reaction_add
 
 from public.settings import *
 
@@ -31,6 +31,7 @@ bot_credentials = open("secret/bot_credentials", "r").read()
 bot_id = bot_credentials.split("\n")[0]
 token = bot_credentials.split("\n")[1]
 
+tracked_messages = {}
 
 @client.event
 async def on_ready():
@@ -53,7 +54,7 @@ async def on_message(message):
     try:
         print(f"Message content: {message.content}")
         await handle_on_message(
-            client, message, bot_name, admin_name, admin_required, bot_id, current_guild
+            client, message, bot_name, admin_name, admin_required, bot_id, current_guild, tracked_messages
         )
     except Exception as e:
         print(f"error: {e}")
@@ -67,5 +68,8 @@ a || cheeky fix|| is required from the developer!"""
     finally:
         pass
 
+@client.event
+async def on_reaction_add(reaction, user):
+    await handle_reaction_add(client, reaction, user, tracked_messages)
 
 client.run(token)
