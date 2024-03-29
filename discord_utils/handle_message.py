@@ -4,8 +4,8 @@ import io
 import sys
 
 from discord_utils.guild_stats_helpers import community_report
-from discord_utils.user_management_helpers import get_profile_from_discord_id
-from discord_utils.order_management_helpers import save_order, rate_order, get_ratings
+from discord_utils.user_management_helpers import get_profile_from_discord
+from discord_utils.order_management_helpers import save_order, rate_order, remove_rate_order
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 from discord_utils.bot_commands import (
     handle_extract_command,
@@ -28,20 +28,36 @@ async def handle_reaction_add(client, reaction, user, tracked_messages):
         print(reaction.emoji, str(reaction.emoji))
         reaction_value = emoji_to_value(str(reaction.emoji))
 
-        user_profile = get_profile_from_discord_id(user.id)
+        user_profile = get_profile_from_discord(user.id, 'id-dc')
         if not user_profile:
             await reaction.message.channel.send(f"User {user.display_name} not found in database")
             return
 
         await reaction.message.channel.send(f"{user_profile.get('name-fc')} rated **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction.message.id]['dish-title']}")
 
-        rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value)
-        
-        # tracked_messages[reaction.message.id]['votes'][user.display_name] = reaction_value
-        # tracked_messages[reaction.message.id]['voters'].append(user.id)
+        date = reaction.message.created_at.strftime("%Y-%m-%d")
 
-        #* optional: remove the reaction after processing
-        # await reaction.remove(user)
+        rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
+
+
+async def handle_reaction_remove(client, reaction, user, tracked_messages):
+    await reaction.message.channel.typing()
+
+    if reaction.message.id in tracked_messages and user != client.user:
+        print(f"Reaction {reaction.emoji} removed by {user.display_name}")
+        reaction_value = emoji_to_value(str(reaction.emoji))
+
+        user_profile = get_profile_from_discord(user.id, 'id-dc')  # Fetch user profile from your system
+        if not user_profile:
+            await reaction.message.channel.send(f"User {user.display_name} not found in database")
+            return
+
+        await reaction.message.channel.send(f"{user_profile.get('name-fc')} removed rating **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction.message.id]['dish-title']}")
+
+        date = reaction.message.created_at.strftime("%Y-%m-%d")
+
+        remove_rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
+
 
 async def handle_on_message(
     client, message, bot_name, admin_name, admin_required, bot_id, current_guild, tracked_messages
