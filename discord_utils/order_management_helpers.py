@@ -42,6 +42,7 @@ def rate_order_by_dish_title(dish_title, user_id, rating, date):
             # Check if the exact rating already exists
             if any(r['user-id'] == user_id and r['date'] == date and r['rating'] == rating for r in dish_info.get('dish-ratings', [])):
                 print(f"Duplicate rating for {dish_title} by {user_id} on {date}.")
+                return
             else:
                 print(f"Rated {dish_title} with {rating} by {user_id}")
                 dish_info.setdefault('dish-ratings', []).append({
@@ -53,7 +54,7 @@ def rate_order_by_dish_title(dish_title, user_id, rating, date):
                     json.dump(orders, file, indent=4)
                 return
 
-    print(f"Could not find dish {dish_title} to rate.")
+    print(f"Could not find dish {dish_title} to rate. ({user_id}, {rating}, {date})")
 
 
 def rate_order(dish_id, user_id, rating, date):
@@ -104,7 +105,7 @@ def get_ratings():
             if rating not in output:
                 output[rating] = []
             # Append the dish title to the list for this rating
-            output[rating].append(dish_info['dish-title'])
+            output[rating].append({'title': dish_info['dish-title'], 'category': dish_info['dish-category-title']})
 
     return output
 

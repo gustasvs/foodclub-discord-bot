@@ -2,11 +2,23 @@ import discord
 import random
 import json
 
-from discord_utils.user_management_helpers import load_profiles, get_user_profile, link_discord
+from discord_utils.user_management_helpers import (
+    load_profiles, 
+    get_user_profile, 
+    link_discord, 
+    get_profile_from_discord, 
+    update_remindme
+    )
 from discord_utils.guild_stats_helpers import community_report
-from discord_utils.order_management_helpers import get_ratings, rate_order, rate_order_by_dish_title
-from discord_utils.order_management_helpers import get_todays_orders
+from discord_utils.order_management_helpers import get_ratings, get_todays_orders
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
+
+async def handle_remindme_command(message):
+    profile = get_profile_from_discord(message.author.id, 'id-dc')
+    if not profile:
+        await message.channel.send("Foodclub user not found for this discord account!\nUse `link` command to link you accounts.")
+    update_remindme(profile.get('user-id'))
+    await message.channel.send("I will remind you")
 
 async def handle_extract_command(message):
     rating_history = {}
@@ -53,21 +65,33 @@ async def handle_link_command(message):
 
 async def handle_ratings_command(message):
     ratings = get_ratings()
-
-    embed = discord.Embed(title=":fork_knife_plate: Ratings :fork_knife_plate:", color=0x3498db)
-    
-    for rating, dishes in ratings.items():
-        ratings[rating] = list(set(dishes))
-
     sorted_ratings = sorted(ratings.items(), key=lambda x: x[0], reverse=True)
     
-    for rating_value, dishes in sorted_ratings:
-        # Combine all dish titles for the current rating into a single string
-        dishes_list = "\n".join(dishes)
-        # Add a field to the embed with the rating value as the name and the dish titles as the value
-        embed.add_field(name=f"{value_to_emoji(rating_value)}", value=dishes_list, inline=False)
+    embed = discord.Embed(color=0x3498db)
+    
+    for rating_value, dish_infos in sorted_ratings:
+        category_dishes = {}  # Organize dishes by category
+        seen_dishes = {}
+
+        for dish_info in dish_infos:
+            if not seen_dishes.get(dish_info.get('title')):
+                category_dishes.setdefault(dish_info.get('category'), []).append(dish_info.get('title'))
+            seen_dishes[dish_info.get('title')] = True
+        
+        sorted_categories = sorted(category_dishes.items())
+
+        dishes_display = []
+        for category, dishes in sorted_categories:
+            category_dishes_str = f"**{category}**\n" + "\n".join([f"- {dish}" for dish in dishes])
+            dishes_display.append(category_dishes_str)
+        
+        dishes_display_str = "\n".join(dishes_display)
+        dishes_display_str = dishes_display_str[:1024]  # Limit to 1024 characters
+        embed.add_field(name=f"{value_to_emoji(rating_value)}", value=dishes_display_str, inline=False)
 
     await message.channel.send(embed=embed)
+
+
 
 
 async def handle_profiles_command(message):

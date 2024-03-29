@@ -46,6 +46,15 @@ def link_discord(user_id, discord_id, discord_name):
             return True
     return False
 
+def update_remindme(user_id):
+    profiles = load_profiles()
+    for i, profile in enumerate(profiles):
+        if profile.get('user-id') == str(user_id):
+            new_remindme = not profile.get('remindme', False)
+            profiles[i]['remindme'] = new_remindme
+            save_profiles(profiles)
+            return not new_remindme
+
 def get_profile_from_discord(value, field='id-dc'):
     profiles = load_profiles()
     for profile in profiles:
