@@ -46,9 +46,9 @@ def link_discord(user_id, discord_id, discord_name):
             return True
     return False
 
-def get_profile_from_discord_id(discord_id):
+def get_profile_from_discord(value, field='id-dc'):
     profiles = load_profiles()
     for profile in profiles:
-        if profile.get('id-dc') == discord_id:
+        if profile.get(field) == value:
             return profile
     return None
