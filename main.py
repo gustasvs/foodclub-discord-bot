@@ -1,17 +1,6 @@
 import discord
-import sys
-import time
-import datetime
-from random import choice
-import asyncio
-import random
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import style
-import io
 
-from discord_utils.handle_message import handle_on_message, handle_reaction_add
-
+from discord_utils.handle_message import handle_on_message, handle_reaction_add, handle_reaction_remove
 from public.settings import *
 
 # https://stackoverflow.com/questions/74071838/cant-receive-the-message-content-with-discord-bot
@@ -48,7 +37,6 @@ async def on_ready():
         ),
     )
 
-
 @client.event
 async def on_message(message):
     try:
@@ -71,5 +59,9 @@ a || cheeky fix|| is required from the developer!"""
 @client.event
 async def on_reaction_add(reaction, user):
     await handle_reaction_add(client, reaction, user, tracked_messages)
+
+@client.event
+async def on_reaction_remove(reaction, user):
+    await handle_reaction_remove(client, reaction, user, tracked_messages)
 
 client.run(token)
