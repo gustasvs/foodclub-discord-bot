@@ -13,12 +13,41 @@ from discord_utils.guild_stats_helpers import community_report
 from discord_utils.order_management_helpers import get_ratings, get_todays_orders
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 
+async def handle_remindme_snooze_command(message):
+    profile = get_profile_from_discord(message.author.id, 'id-dc')
+    if not profile:
+        embed = discord.Embed(
+            title=":link: Link Required :link:",
+            description="Foodclub user not found for this Discord account!\nUse `!link` command to link your accounts.",
+            color=0xFF0000
+        )
+        await message.channel.send(embed=embed)
+
+
 async def handle_remindme_command(message):
     profile = get_profile_from_discord(message.author.id, 'id-dc')
     if not profile:
-        await message.channel.send("Foodclub user not found for this discord account!\nUse `link` command to link you accounts.")
-    update_remindme(profile.get('user-id'))
-    await message.channel.send("I will remind you")
+        embed = discord.Embed(
+            title=":link: Link Required :link:",
+            description="Foodclub user not found for this Discord account!\nUse `!link` command to link your accounts.",
+            color=0xFF0000
+        )
+        await message.channel.send(embed=embed)
+
+    remindme = update_remindme(profile.get('user-id'))
+    if remindme:
+        embed = discord.Embed(
+            title=":white_check_mark: Reminders Activated :bell:",
+            description="You will now recieve many many reminders each morning until you order something!!! :)",
+            color=0x00FF00
+        )
+    else:
+        embed = discord.Embed(
+            title=":octagonal_sign: Reminders Deactivated :no_bell:",
+            description="You will no longer receive reminders. :(",
+            color=0xFFFF00
+        )
+    await message.channel.send(embed=embed)
 
 async def handle_extract_command(message):
     rating_history = {}

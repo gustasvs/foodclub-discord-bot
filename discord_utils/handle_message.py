@@ -9,6 +9,7 @@ from discord_utils.order_management_helpers import save_order, rate_order, remov
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 from discord_utils.bot_commands import (
     handle_remindme_command,
+    handle_remindme_snooze_command,
     handle_extract_command,
     handle_link_command,
     handle_ratings_command,
@@ -85,6 +86,8 @@ async def handle_on_message(
     match msg.lower().split(" ")[0]:
         case "remindme":
             await handle_remindme_command(message)
+        case "snooze":
+            await handle_remindme_snooze_command(message)
         case "extract":
             await handle_extract_command(message)
         case "link":

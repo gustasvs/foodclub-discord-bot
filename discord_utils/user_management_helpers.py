@@ -50,10 +50,10 @@ def update_remindme(user_id):
     profiles = load_profiles()
     for i, profile in enumerate(profiles):
         if profile.get('user-id') == str(user_id):
-            new_remindme = not profile.get('remindme', False)
+            new_remindme = not profile.get('remindme', True)
             profiles[i]['remindme'] = new_remindme
             save_profiles(profiles)
-            return not new_remindme
+            return new_remindme
 
 def get_profile_from_discord(value, field='id-dc'):
     profiles = load_profiles()
