@@ -8,6 +8,7 @@ from discord_utils.user_management_helpers import get_profile_from_discord_id
 from discord_utils.order_management_helpers import save_order, rate_order, get_ratings
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 from discord_utils.bot_commands import (
+    handle_extract_command,
     handle_link_command,
     handle_ratings_command,
     handle_profiles_command,
@@ -65,6 +66,8 @@ async def handle_on_message(
         pass
 
     match msg.lower().split(" ")[0]:
+        case "extract":
+            await handle_extract_command(message)
         case "link":
             await handle_link_command(message)
 
@@ -129,7 +132,8 @@ async def handle_on_message(
             await handle_total_command(message, current_guild)
         
         case _:
-            await handle_default_command(message)
+            pass
+            # await handle_default_command(message)
 
 
 def message_acceptable(message, bot_name=""):

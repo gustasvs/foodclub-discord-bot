@@ -44,7 +44,7 @@ async def on_ready():
     await client.change_presence(
         status=discord.Status.idle,
         activity=discord.Activity(
-            type=discord.ActivityType.watching, name="latest foodclub.lv news"
+            type=discord.ActivityType.watching, name="foodclub backend CPU's burn 🔥"
         ),
     )
 

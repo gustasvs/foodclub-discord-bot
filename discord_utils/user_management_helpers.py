@@ -15,10 +15,12 @@ def save_profiles(data):
     with open(USER_PROFILES_PATH, 'w') as file:
         json.dump(data, file, indent=4)
 
-def get_user_profile(value, field='email-fc'):
+def get_user_profile(value, field='user-id'):
     profiles = load_profiles()
     for profile in profiles:
-        if profile.get(field) == str(value):
+        # print(profile)
+        print(str(profile.get(field)), str(value), str(profile.get(field)) == str(value))
+        if str(profile.get(field)) == str(value):
             return profile
     return None
 

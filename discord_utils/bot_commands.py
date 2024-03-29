@@ -1,14 +1,34 @@
 import discord
 import random
+import json
 
 from discord_utils.user_management_helpers import load_profiles, get_user_profile, link_discord
 from discord_utils.guild_stats_helpers import community_report
-from discord_utils.order_management_helpers import get_ratings
+from discord_utils.order_management_helpers import get_ratings, rate_order, rate_order_by_dish_title
 from discord_utils.order_management_helpers import get_todays_orders
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 
+async def handle_extract_command(message):
+    rating_history = {}
+    count = 0
+    async for history_message in message.channel.history(limit=100):
+        for reaction in history_message.reactions:
+            async for user in reaction.users():
+
+                rating = emoji_to_value(reaction.emoji)
+                if rating != 0:
+                    if history_message.content not in rating_history:
+                        rating_history[history_message.content] = []
+                    count += 1
+                    rating_history[history_message.content].append({'name-dc': user.name, 'id-dc': user.id, 'rating': rating, 'date': history_message.created_at.strftime("%Y-%m-%d")})
+                 
+    print(rating_history)
+    # write in file
+    with open("secret/rating_history.json", "w") as file:
+        json.dump(rating_history, file, indent=4)
+    await message.channel.send(f"extracted {count} ratings")
+
 async def handle_link_command(message):
-    profiles = load_profiles()
     if len(message.mentions) == 0:
         embed = discord.Embed(title="⚠️ Error ⚠️", color=0xe74c3c)
         embed.add_field(name="Part 1: discord user", value=f"use `@mention` feature\n\n**Example:** link `@Someone` Foodclub User", inline=True)
@@ -62,7 +82,7 @@ async def handle_profiles_command(message):
         discord_username_column += f"{profile.get('name-dc', 'N/A')}\n"
 
     if len(name_column) > 1024 or len(discord_username_column) > 1024:
-        # Handle the case where content is too long (e.g., split into multiple embeds, truncate, etc.)
+        # WIP: Split the data into multiple embeds if it exceeds the character limit
         pass
     else:
         embed.add_field(name="Foodclub name", value=name_column, inline=True)
@@ -125,38 +145,11 @@ async def handle_total_command(message, current_guild):
     await message.channel.send(f"```{current_guild.member_count}```")
 
 async def handle_help_command(message):
-    embed = discord.Embed(title="🤖 Helpful Commands Guide 🤖", color=0x3498db)
-    embed.set_thumbnail(url="https://example.com/bot_icon.png")  # Replace with your bot's icon URL
-    embed.set_footer(text="Use these commands to interact with the bot. For more info, type command_name --help")
-
-    # User-related commands
-    embed.add_field(name="👥 User Commands",
-                    value="`link @discord_user Foodclub User` - Links your Discord account to your Foodclub user.\n"
-                          "`profiles` - Displays all Foodclub user profiles.\n",
-                    inline=False)
-
-    # Foodclub-related commands
-    embed.add_field(name="🍽️ Foodclub Commands",
-                    value="`ratings` - Shows dish ratings.\n"
-                          "`orders` - Lists current food orders.\n",
-                    inline=False)
-
-    # Utility commands
-    embed.add_field(name="🛠️ Utility Commands",
-                    value="`spam @discord_user message` - Sends a spam message to a user.\n"
-                          "`online` - Shows online members.\n"
-                          "`total` - Displays the total number of guild members.\n",
-                    inline=False)
-
-    # Example usage
-    embed.add_field(name="🔍 Example Usage",
-                    value="`link @JohnDoe JohnDoeFC` - This will link the Discord user @JohnDoe to the Foodclub user 'JohnDoeFC'.",
-                    inline=False)
-
-    # Note about assistance
-    embed.add_field(name="ℹ️ Need Further Assistance?",
-                    value="If you have questions or need help with a specific command, you can reply to this message or contact an admin.",
-                    inline=False)
+    embed = discord.Embed(title="🤖 Kā komandēt dzimtzemnieku 🧑‍🌾", color=0x3498db)
+    # embed.set_footer(text=":pizza: Foodclub bot :pizza:")
+    embed.add_field(name="👥 user commands", value="`link`\n`profiles`", inline=False)
+    embed.add_field(name="🍽️ foodclub commands", value="`ratings`\n`orders`", inline=False)
+    embed.add_field(name="util commands", value="`spam`\n`online`\n`total`\n`extract`\n`logout`\n`exit`\n`help`", inline=False)
 
     await message.channel.send(embed=embed)
 

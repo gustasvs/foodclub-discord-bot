@@ -30,6 +30,24 @@ def save_order(new_order):
     with open(ORDER_PATH, 'w') as file:
         json.dump(orders, file, indent=4)
 
+def rate_order_by_dish_title(dish_title, user_id, rating):
+    try:
+        with open(ORDER_PATH, 'r') as file:
+            orders = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        orders = {}
+
+    for dish_id, dish_info in orders.items():
+        if dish_info['dish-title'] == dish_title:
+            orders[dish_id]['dish-ratings'].append({
+                'user-id': user_id,
+                'rating': rating
+            })
+
+    with open(ORDER_PATH, 'w') as file:
+        json.dump(orders, file, indent=4)
+
+
 def rate_order(dish_id, user_id, rating):
     try:
         with open(ORDER_PATH, 'r') as file:

@@ -92,14 +92,15 @@ def set_local_storage(driver, data):
 
 if __name__ == "__main__":
 
-    for day_id in range(2145, 2146):
+    for day_id in range(2005, 2150):
+        print(f"Fetching data for day {day_id}")
         users, orders = get_data(day_id)
 
         save_todays_orders(orders)
 
         for user in users:
             user_id = user['user-id']
-            print(f"Setting user profile for {user_id}")
+            # print(f"Setting user profile for {user_id}")
             set_user_profile(user_id, user)
 
         for order in orders:
