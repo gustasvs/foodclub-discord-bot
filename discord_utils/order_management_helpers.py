@@ -30,7 +30,7 @@ def save_order(new_order):
     with open(ORDER_PATH, 'w') as file:
         json.dump(orders, file, indent=4)
 
-def rate_order_by_dish_title(dish_title, user_id, rating):
+def rate_order_by_dish_title(dish_title, user_id, rating, date):
     try:
         with open(ORDER_PATH, 'r') as file:
             orders = json.load(file)
@@ -39,16 +39,24 @@ def rate_order_by_dish_title(dish_title, user_id, rating):
 
     for dish_id, dish_info in orders.items():
         if dish_info['dish-title'] == dish_title:
-            orders[dish_id]['dish-ratings'].append({
-                'user-id': user_id,
-                'rating': rating
-            })
+            # Check if the exact rating already exists
+            if any(r['user-id'] == user_id and r['date'] == date and r['rating'] == rating for r in dish_info.get('dish-ratings', [])):
+                print(f"Duplicate rating for {dish_title} by {user_id} on {date}.")
+            else:
+                print(f"Rated {dish_title} with {rating} by {user_id}")
+                dish_info.setdefault('dish-ratings', []).append({
+                    'user-id': user_id,
+                    'rating': rating,
+                    'date': date
+                })
+                with open(ORDER_PATH, 'w') as file:
+                    json.dump(orders, file, indent=4)
+                return
 
-    with open(ORDER_PATH, 'w') as file:
-        json.dump(orders, file, indent=4)
+    print(f"Could not find dish {dish_title} to rate.")
 
 
-def rate_order(dish_id, user_id, rating):
+def rate_order(dish_id, user_id, rating, date):
     try:
         with open(ORDER_PATH, 'r') as file:
             orders = json.load(file)
@@ -58,8 +66,25 @@ def rate_order(dish_id, user_id, rating):
     if dish_id in orders:
         orders[dish_id]['dish-ratings'].append({
             'user-id': user_id,
-            'rating': rating
+            'rating': rating,
+            'date': date
         })
+
+    with open(ORDER_PATH, 'w') as file:
+        json.dump(orders, file, indent=4)
+
+def remove_rate_order(dish_id, user_id, rating, date):
+    try:
+        with open(ORDER_PATH, 'r') as file:
+            orders = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        orders = {}
+
+    if dish_id in orders:
+        orders[dish_id]['dish-ratings'] = [
+            r for r in orders[dish_id].get('dish-ratings', [])
+            if not (r['user-id'] == user_id and r['rating'] == rating and r['date'] == date)
+        ]
 
     with open(ORDER_PATH, 'w') as file:
         json.dump(orders, file, indent=4)
