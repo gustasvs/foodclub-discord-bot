@@ -1,5 +1,17 @@
 import json
+from datetime import datetime
+
 from public.settings import ORDER_PATH
+from fetch_foodclub import get_data
+
+def get_current_day():
+    # 28.03.2024. should return 2148
+    # 29.03.2024. should return 2149
+    # etc 
+    base_date = datetime(2024, 3, 27)
+    current_date = datetime.now()
+    delta = current_date - base_date
+    return 2147 + delta.days
 
 def save_order(new_order):
     try:
@@ -109,16 +121,8 @@ def get_ratings():
 
     return output
 
-def save_todays_orders(orders):
-    # rewrites existing todays orders
-    with open('secret/todays_orders.json', 'w') as file:
-        json.dump(orders, file, indent=4)
-
 def get_todays_orders():
-    try:
-        with open('secret/todays_orders.json', 'r') as file:
-            orders = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
+    day_id = get_current_day()
+    print("Current day id: ", day_id)
+    users, orders = get_data(day_id)
     return orders

@@ -6,8 +6,6 @@ import json
 import os
 
 from public.settings import CACHE_PATH
-from discord_utils.user_management_helpers import set_user_profile
-from discord_utils.order_management_helpers import save_order, save_todays_orders
 
 BUSINESS_FOODCLUB_ID = 525
 
@@ -91,12 +89,13 @@ def set_local_storage(driver, data):
 
 
 if __name__ == "__main__":
+    
+    from discord_utils.user_management_helpers import set_user_profile
+    from discord_utils.order_management_helpers import save_order
 
-    for day_id in range(2005, 2150):
+    for day_id in range(2080, 2148):
         print(f"Fetching data for day {day_id}")
         users, orders = get_data(day_id)
-
-        save_todays_orders(orders)
 
         for user in users:
             user_id = user['user-id']
