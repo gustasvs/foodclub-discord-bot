@@ -50,10 +50,22 @@ def update_remindme(user_id):
     profiles = load_profiles()
     for i, profile in enumerate(profiles):
         if profile.get('user-id') == str(user_id):
-            new_remindme = not profile.get('remindme', True)
+            new_remindme = not profile.get('remindme', False)
             profiles[i]['remindme'] = new_remindme
             save_profiles(profiles)
             return new_remindme
+        
+def update_snooze_remindme(user_id, paused):
+    called_again = False
+    profiles = load_profiles()
+    for i, profile in enumerate(profiles):
+        if profile.get('user-id') == str(user_id):
+            if profile.get('snooze-remindme') == paused:
+                called_again = True
+            profiles[i]['snooze-remindme'] = paused
+            save_profiles(profiles)
+    return called_again
+        
 
 def get_profile_from_discord(value, field='id-dc'):
     profiles = load_profiles()

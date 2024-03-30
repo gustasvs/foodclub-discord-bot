@@ -7,29 +7,52 @@ from discord_utils.user_management_helpers import (
     get_user_profile, 
     link_discord, 
     get_profile_from_discord, 
-    update_remindme
+    update_remindme,
+    update_snooze_remindme
     )
 from discord_utils.guild_stats_helpers import community_report
 from discord_utils.order_management_helpers import get_ratings, get_todays_orders
 from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
 
-async def handle_remindme_snooze_command(message):
+async def handle_remindme_snooze_command(message, paused):
     profile = get_profile_from_discord(message.author.id, 'id-dc')
     if not profile:
         embed = discord.Embed(
-            title=":link: Link Required :link:",
-            description="Foodclub user not found for this Discord account!\nUse `!link` command to link your accounts.",
-            color=0xFF0000
+            title=":link: Account Link Needed :link:",
+            description="We couldn't find a Foodclub account linked to your Discord. Please use the `!link` command to connect your accounts.",
+            color=0xFF5555
         )
         await message.channel.send(embed=embed)
+        return
 
+    called_again = update_snooze_remindme(profile.get('user-id'), paused)
+    
+    embed_props = {
+        (True, True): (":zzz: Reminders Already Snoozed :mute:", 
+                       "Your reminders are still on hold. No changes made. They will resume automatically after one day.", 
+                       0xFFA500),
+        (True, False): (":sun_with_face: Reminders Already Active :loud_sound:", 
+                        "Your reminders are already up and running! No changes made.", 
+                        0x32CD32),
+        (False, True): (":zzz: Reminders Snoozed :mute:", 
+                        "Your reminders are now on hold. They will resume automatically after one day. :sleeping:", 
+                        0xFFFF00),
+        (False, False): (":sun_with_face: Reminders Awakened :loud_sound:", 
+                         "Your reminders are back in action! :sunrise_over_mountains:", 
+                         0x00FF00)
+    }
+    
+    title, description, color = embed_props[(called_again, paused)]
+
+    embed = discord.Embed(title=title, description=description, color=color)
+    await message.channel.send(embed=embed)
 
 async def handle_remindme_command(message):
     profile = get_profile_from_discord(message.author.id, 'id-dc')
     if not profile:
         embed = discord.Embed(
-            title=":link: Link Required :link:",
-            description="Foodclub user not found for this Discord account!\nUse `!link` command to link your accounts.",
+            title=":mag_right: Link Required :link:",
+            description="We couldn't find a Foodclub account linked to your Discord. Please use the `!link` command to connect your accounts.",
             color=0xFF0000
         )
         await message.channel.send(embed=embed)
@@ -201,7 +224,7 @@ async def handle_help_command(message):
     embed = discord.Embed(title="🤖 Kā komandēt dzimtzemnieku 🧑‍🌾", color=0x3498db)
     # embed.set_footer(text=":pizza: Foodclub bot :pizza:")
     embed.add_field(name="👥 user commands", value="`link`\n`profiles`", inline=False)
-    embed.add_field(name="🍽️ foodclub commands", value="`ratings`\n`orders`", inline=False)
+    embed.add_field(name="🍽️ foodclub commands", value="`ratings`\n`orders`\n`remindme`\n`pause`", inline=False)
     embed.add_field(name="util commands", value="`spam`\n`online`\n`total`\n`extract`\n`logout`\n`exit`\n`help`", inline=False)
 
     await message.channel.send(embed=embed)

@@ -86,8 +86,10 @@ async def handle_on_message(
     match msg.lower().split(" ")[0]:
         case "remindme":
             await handle_remindme_command(message)
-        case "snooze":
-            await handle_remindme_snooze_command(message)
+        case "pause":
+            await handle_remindme_snooze_command(message, True)
+        case "resume":
+            await handle_remindme_snooze_command(message, False)
         case "extract":
             await handle_extract_command(message)
         case "link":
