@@ -12,7 +12,7 @@ from utils.user_management_helpers import (
     )
 from utils.guild_stats_helpers import community_report
 from utils.order_management_helpers import get_ratings, get_todays_orders
-from utils.rating_helpers import emoji_to_value, value_to_emoji
+from utils.helpers import emoji_to_value, value_to_emoji
 
 async def handle_remindme_snooze_command(message, paused):
     profile = get_profile_from_discord(message.author.id, 'id-dc')
@@ -25,7 +25,7 @@ async def handle_remindme_snooze_command(message, paused):
         await message.channel.send(embed=embed)
         return
 
-    called_again = update_snooze_remindme(profile.get('user-id'), paused)
+    called_again, reminders_disabled = update_snooze_remindme(profile.get('user-id'), paused)
     
     embed_props = {
         (True, True): (":zzz: Reminders Already Snoozed :mute:", 
@@ -42,9 +42,18 @@ async def handle_remindme_snooze_command(message, paused):
                          0x00FF00)
     }
     
-    title, description, color = embed_props[(called_again, paused)]
+    if not reminders_disabled:
+        title, description, color = embed_props[(called_again, paused)]
+        embed = discord.Embed(title=title, description=description, color=color)
+    
+    else:
+        action = "pause" if paused else "resume"
+        embed = discord.Embed(
+            title=f":leftwards_pushing_hand: Can't {action}",
+            description="It looks like there was an issue with changing the state of your reminders. Please try again later or contact support if the problem persists.",
+            color=0xFFFF00
+        )
 
-    embed = discord.Embed(title=title, description=description, color=color)
     await message.channel.send(embed=embed)
 
 async def handle_remindme_command(message):

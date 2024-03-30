@@ -6,7 +6,7 @@ import sys
 from utils.guild_stats_helpers import community_report
 from utils.user_management_helpers import get_profile_from_discord
 from utils.order_management_helpers import save_order, rate_order, remove_rate_order
-from utils.rating_helpers import emoji_to_value, value_to_emoji
+from utils.helpers import emoji_to_value, value_to_emoji
 from utils.bot_commands import (
     handle_remindme_command,
     handle_remindme_snooze_command,

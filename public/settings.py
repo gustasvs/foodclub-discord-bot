@@ -12,3 +12,4 @@ FF_WEBDRIVER_PATH = "public/geckodriver.exe"
 CACHE_PATH = 'secret/cache'
 ORDER_PATH = 'secret/orders.json'
 USER_PROFILES_PATH = 'secret/users.json'
+BOT_CREDENTIALS_PATH = 'secret/bot_credentials'
