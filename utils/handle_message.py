@@ -1,12 +1,8 @@
-import random
-import string
 import io
-import sys
 
-from utils.guild_stats_helpers import community_report
 from utils.user_management_helpers import get_profile_from_discord
 from utils.order_management_helpers import save_order, rate_order, remove_rate_order
-from utils.helpers import emoji_to_value, value_to_emoji
+from utils.helpers import emoji_to_value, value_to_emoji, community_report
 from utils.bot_commands import (
     handle_remindme_command,
     handle_remindme_snooze_command,
@@ -19,6 +15,7 @@ from utils.bot_commands import (
     handle_spam_command,
     handle_online_command,
     handle_total_command,
+    handle_exit_command,
     handle_default_command,
 )
 
@@ -65,10 +62,6 @@ async def handle_on_message(
     client, message, bot_name, admin_name, admin_required, bot_id, current_guild, tracked_messages
 ):
     msg = message.content
-    tagged = False
-    if f"<@!{bot_id}>" in msg:
-        msg = msg[len(bot_id) :]
-        tagged = True
 
     message_stats_for_logs = f"{message.channel}/{message.author} - {msg}"
     with io.open("secret/log.txt", "a", encoding="utf-8") as f:
@@ -94,16 +87,12 @@ async def handle_on_message(
             await handle_extract_command(message)
         case "link":
             await handle_link_command(message)
-
         case "ratings":
             await handle_ratings_command(message)
-
         case "profiles" | "users":
             await handle_profiles_command(message)
-
         case "orders":
             await handle_orders_command(message, tracked_messages)
-
         case "logout":
             if message.author.name == admin_name or admin_required == False:
                 await message.channel.send(f"**logging out!**")
@@ -111,54 +100,18 @@ async def handle_on_message(
                 exit(0)
             else:
                 await message.channel.send(f"*permission denied*")
-
         case "exit":
-            if message.author.name == admin_name or admin_required == False:
-                letters = string.ascii_lowercase + string.ascii_uppercase
-                mes = ""
-                for e in range(random.randint(4, 12)):
-                    streng = "".join(
-                        random.choice(letters) for i in range(random.randint(2, 20))
-                    )
-                    if random.randint(1, 2) == 1:
-                        cip = random.randint(1, 3)
-                        if cip == 1:
-                            streng = "*" + streng
-                            streng += "*"
-                        if cip == 2:
-                            streng = "**" + streng
-                            streng += "**"
-                        if cip == 3:
-                            streng = "***" + streng
-                            streng += "***"
-
-                    mes += streng
-                    mes += "\n"
-                await message.channel.send(mes)
-                await message.channel.send(
-                    "*error 0x0000003b*\nquitting aplication\n***quitti***\n*ng ap*"
-                )
-                await client.close()
-                sys.exit()
-            else:
-                await message.channel.send(f"**permission denied**")
-
+            await handle_exit_command(message, client, admin_name, admin_required)
         case "help":
             await handle_help_command(message)
-
         case "spam":
             await handle_spam_command(client, message)
-
         case "online":
             await handle_online_command(message, current_guild)
-
         case "total":
             await handle_total_command(message, current_guild)
-        
         case _:
-            pass
-            # await handle_default_command(message)
-
+            await handle_default_command(message, client)
 
 def message_acceptable(message, bot_name=""):
     if message.author.name == bot_name:
