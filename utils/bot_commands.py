@@ -2,7 +2,7 @@ import discord
 import random
 import json
 
-from discord_utils.user_management_helpers import (
+from utils.user_management_helpers import (
     load_profiles, 
     get_user_profile, 
     link_discord, 
@@ -10,9 +10,9 @@ from discord_utils.user_management_helpers import (
     update_remindme,
     update_snooze_remindme
     )
-from discord_utils.guild_stats_helpers import community_report
-from discord_utils.order_management_helpers import get_ratings, get_todays_orders
-from discord_utils.rating_helpers import emoji_to_value, value_to_emoji
+from utils.guild_stats_helpers import community_report
+from utils.order_management_helpers import get_ratings, get_todays_orders
+from utils.rating_helpers import emoji_to_value, value_to_emoji
 
 async def handle_remindme_snooze_command(message, paused):
     profile = get_profile_from_discord(message.author.id, 'id-dc')

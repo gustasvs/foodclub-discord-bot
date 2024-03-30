@@ -1,6 +1,6 @@
 import discord
 
-from discord_utils.handle_message import handle_on_message, handle_reaction_add, handle_reaction_remove
+from utils.handle_message import handle_on_message, handle_reaction_add, handle_reaction_remove
 from public.settings import *
 
 # https://stackoverflow.com/questions/74071838/cant-receive-the-message-content-with-discord-bot
