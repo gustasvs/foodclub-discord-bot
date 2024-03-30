@@ -1,0 +1,56 @@
+import discord
+import random
+from datetime import datetime
+
+from utils.user_management_helpers import load_profiles
+from utils.order_management_helpers import get_todays_users
+
+async def handle_daily_reminder(client):
+    now = datetime.now()
+    print("Current hour: ", now.hour)
+    if now.hour < 8 or (now.hour > 9 and (now.hour == 9 and now.minute > 30)):
+        print("Not time for daily reminder")
+        # return
+    
+    end_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    remaining_time = end_time - now
+
+    hours, remainder = divmod(remaining_time.seconds, 3600)
+    minutes = remainder // 60
+
+    if hours > 0:
+        time_str = f"{hours} hour{'s' if hours > 1 else ''} and {minutes} minute{'s' if minutes != 1 else ''}"
+    else:
+        time_str = f"{minutes} minute{'s' if minutes != 1 else ''}"
+    
+    profiles = load_profiles()
+    already_ordered = get_todays_users()
+    
+    # filter out users who don't want to be reminded
+    profiles = [profile for profile in profiles if profile.get('remindme', False) and not profile.get('snooze-remindme', False)]
+    # print("Profiles to want to be reminded: ", profiles)
+    # filter out users who already ordered
+    for profile in profiles:
+        for user in already_ordered:
+            if profile.get('user-id') == user.get('user-id'):
+                print("Removing user who already ordered: ", profile.get('name-fc'))
+                profiles.remove(profile)
+                break
+    # print("Profiles who have not ordered: ", profiles)
+
+    # send reminder to all users
+    random_food_emoji = random.choice(["🍜","🍕","🍔","🍟","🌭","🍦","🍩","🍪","🍫","🍬","🍭","🍮"])
+
+    for profile in profiles:
+        user_id = profile.get('user-id')
+        discord_id = profile.get('id-dc')
+        discord_user = client.get_user(discord_id)
+        
+        reminder_message = (
+                f"Good morning! 🌞 You have {time_str} "
+                f"left to place your food order for today. Don't miss out on a delicious meal! {random_food_emoji}"
+                f"\n\nIf you want to stop receiving reminders, type `pause`"
+            )
+        
+        print(f"Sending reminder to {profile.get('name-fc')}")
+        await discord_user.send(reminder_message)

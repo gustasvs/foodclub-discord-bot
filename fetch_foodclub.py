@@ -26,9 +26,9 @@ def load_cached_response(filename):
     except (FileNotFoundError, EOFError, pickle.UnpicklingError):
         return None
 
-def fetch_days_data(day_id):
+def fetch_days_data(day_id, refetch):
     cached_data = load_cached_response(str(day_id))
-    if cached_data is not None:
+    if cached_data is not None and not refetch:
         print(f"Using cached data for day {day_id}")
         return cached_data
 
@@ -49,9 +49,9 @@ def fetch_days_data(day_id):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
 
-def get_data(day_id):
+def get_data(day_id, refetch=False):
     try:
-        data = fetch_days_data(day_id)
+        data = fetch_days_data(day_id, refetch)
 
         users = []
         orders = []

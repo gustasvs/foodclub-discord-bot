@@ -124,5 +124,12 @@ def get_ratings():
 def get_todays_orders():
     day_id = get_current_day()
     print("Current day id: ", day_id)
-    users, orders = get_data(day_id)
+    _, orders = get_data(day_id)
     return orders
+
+def get_todays_users():
+    day_id = get_current_day()
+    print("Current day id: ", day_id)
+    users, _ = get_data(day_id, refetch=True)
+    # users, _ = get_data(2147)
+    return users

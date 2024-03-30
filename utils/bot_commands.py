@@ -1,7 +1,11 @@
 import discord
 import random
 import json
+import sys
+import datetime
+import string
 
+from utils.resposne_generator import generate_response
 from utils.user_management_helpers import (
     load_profiles, 
     get_user_profile, 
@@ -10,9 +14,8 @@ from utils.user_management_helpers import (
     update_remindme,
     update_snooze_remindme
     )
-from utils.guild_stats_helpers import community_report
 from utils.order_management_helpers import get_ratings, get_todays_orders
-from utils.helpers import emoji_to_value, value_to_emoji
+from utils.helpers import emoji_to_value, value_to_emoji, community_report, random_answer, randomize_text
 
 async def handle_remindme_snooze_command(message, paused):
     profile = get_profile_from_discord(message.author.id, 'id-dc')
@@ -70,7 +73,7 @@ async def handle_remindme_command(message):
     if remindme:
         embed = discord.Embed(
             title=":white_check_mark: Reminders Activated :bell:",
-            description="You will now recieve many many reminders each morning until you order something!!! :)",
+            description="You will now recieve a lot of reminders each morning until you order something!!!",
             color=0x00FF00
         )
     else:
@@ -152,9 +155,6 @@ async def handle_ratings_command(message):
 
     await message.channel.send(embed=embed)
 
-
-
-
 async def handle_profiles_command(message):
     profiles = load_profiles()
     embed = discord.Embed(title=":yum: Bot user list: :pizza:", color=0x2ecc71)
@@ -230,54 +230,55 @@ async def handle_total_command(message, current_guild):
     await message.channel.send(f"```{current_guild.member_count}```")
 
 async def handle_help_command(message):
-    embed = discord.Embed(title="🤖 Kā komandēt dzimtzemnieku 🧑‍🌾", color=0x3498db)
+    embed = discord.Embed(title="Dzimtzemnieka kontroles 𓍯🧑🏾‍🌾", color=0x3498db)
     # embed.set_footer(text=":pizza: Foodclub bot :pizza:")
-    embed.add_field(name="👥 user commands", value="`link`\n`profiles`", inline=False)
-    embed.add_field(name="🍽️ foodclub commands", value="`ratings`\n`orders`\n`remindme`\n`pause`", inline=False)
-    embed.add_field(name="util commands", value="`spam`\n`online`\n`total`\n`extract`\n`logout`\n`exit`\n`help`", inline=False)
+    embed.add_field(name="👥 user commands", value="`link`\n`users/profiles`", inline=False)
+    embed.add_field(name="🍽️ foodclub commands", value="`ratings`\n`orders`\n`remindme`\n`pause/resume`\n`extract`", inline=False)
+    embed.add_field(name="util commands", value="`spam`\n`online`\n`total`\n`logout`\n`exit`\n`help`", inline=False)
 
     await message.channel.send(embed=embed)
 
-async def handle_default_command(message):
-    bot_answer = random_answer(message)
-    bot_answer = randomize_text(bot_answer)
-    await message.channel.send(bot_answer)
+async def handle_exit_command(message, client, admin_name, admin_required):
+    if message.author.name == admin_name or admin_required == False:
+        letters = string.ascii_lowercase + string.ascii_uppercase
+        mes = ""
+        for e in range(random.randint(4, 12)):
+            streng = "".join(
+                random.choice(letters) for i in range(random.randint(2, 20))
+            )
+            if random.randint(1, 2) == 1:
+                cip = random.randint(1, 3)
+                if cip == 1:
+                    streng = "*" + streng
+                    streng += "*"
+                if cip == 2:
+                    streng = "**" + streng
+                    streng += "**"
+                if cip == 3:
+                    streng = "***" + streng
+                    streng += "***"
 
-def randomize_text(bot_answer):
-    cip = random.randint(0, 7)
-    if cip == 1:
-        bot_answer += "*"
-        bot_answer = "*" + bot_answer
-    if cip == 2:
-        bot_answer += "**"
-        bot_answer = "**" + bot_answer
-    if cip == 3:
-        bot_answer += "***"
-        bot_answer = "***" + bot_answer
-    if cip == 4:
-        random_emoji = random.choice(
-            [
-                ":smirk:",
-                ":man_facepalming:",
-                ":woman_facepalming:",
-                ":chart_withdownwards_trend:",
-                ":yum:",
-                ":star_struck:",
-                ":sob:",
-                ":stuck_out_tongue_closed_eyes:",
-                ":ok_hand:",
-                ":partying_face:",
-                ":rainbow:",
-                ":boom:",
-            ]
+            mes += streng
+            mes += "\n"
+        await message.channel.send(mes)
+        await message.channel.send(
+            "*error 0x0000003b*\nquitting aplication\n***quitti***\n*ng ap*"
         )
-        bot_answer += " " + random_emoji
-    return bot_answer
+        await client.close()
+        sys.exit()
+    else:
+        embed = discord.Embed(
+            title="Permission denied 🚫",
+            description="It appears you do not have the necessary permissions to execute this command.",
+            color=0xFF5733,
+        )
+        await message.channel.send(embed=embed)
 
-def random_answer(message):
-    return random.choice(
-        [
-            f"hello {message.author.name} !!!",
-            ":smirk:",
-        ]
-    )
+async def handle_default_command(message, client):
+    if client.user.mentioned_in(message):
+        # cut of start of message
+        msg = message.content.split(">", 1)[1].strip()
+        await message.channel.send(f"Message without mentions: {msg}")
+        bot_answer = generate_response(msg)
+        bot_answer = randomize_text(bot_answer)
+        await message.channel.send(bot_answer)

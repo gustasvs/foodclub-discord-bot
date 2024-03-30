@@ -1,14 +1,18 @@
 import discord
+from discord.ext import tasks
 
 from utils.helpers import get_bot_credentials, get_bot_intents, format_error_message
 from utils.handle_message import handle_on_message, handle_reaction_add, handle_reaction_remove
+from utils.handle_daily_reminder import handle_daily_reminder
 from public.settings import *
 
 client = discord.Client(intents=get_bot_intents())
-
 bot_id, token = get_bot_credentials(BOT_CREDENTIALS_PATH)
-
 tracked_messages = {}
+
+@tasks.loop(minutes=10)
+async def daily_reminder():
+    await handle_daily_reminder(client)
 
 @client.event
 async def on_ready():
@@ -24,6 +28,8 @@ async def on_ready():
             type=discord.ActivityType.listening, name="foodclub orders 🍜"
         ),
     )
+
+    daily_reminder.start() 
 
 @client.event
 async def on_message(message):
@@ -59,4 +65,9 @@ async def on_reaction_remove(reaction, user):
         print(f"error: {e}")
         await reaction.message.channel.send(format_error_message(e))
 
-client.run(token)
+try:
+    client.run(token)
+except:
+    print("Failed to run client")
+finally:
+    pass
