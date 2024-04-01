@@ -1,4 +1,4 @@
-secret/
+src/secret/
 .vscode/
 __pycache__/
 *.pyc
