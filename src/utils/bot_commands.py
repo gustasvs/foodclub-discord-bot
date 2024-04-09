@@ -5,7 +5,7 @@ import sys
 import datetime
 import string
 
-from utils.resposne_generator import generate_response
+# from utils.resposne_generator import generate_response
 from utils.user_management_helpers import (
     load_profiles, 
     get_user_profile, 
@@ -126,34 +126,70 @@ async def handle_link_command(message):
         link_discord(foodclub_user_id, discord_id, message.mentions[0].name)
         await message.channel.send(f":chains:  {foodclub_user_name} :chains: <@{discord_id}> :chains: ")
 
+def assign_nuanced_ratings(dish_scores, max_score):
+    # Define thresholds for nuanced ratings
+    thresholds = {
+        '💎': 0.95, '🇸': 0.9, '🇦➕': 0.85, '🇦': 0.8, '🇦➖': 0.75,
+        '🇧➕': 0.7, '🇧': 0.65, '🇧➖': 0.6,
+        '🇨➕': 0.55, '🇨': 0.5, '🇨➖': 0.45,
+        '🇩➕': 0.4, '🇩': 0.35, '🇩➖': 0.3,
+        '☢️🆘☕': 0.0
+    }
+
+
+    for dish, info in dish_scores.items():
+        normalized_score = info['final_score'] / max_score if max_score else 0
+        # Assign ratings based on normalized score
+        for rating, threshold in thresholds.items():
+            if normalized_score >= threshold:
+                info['rating'] = rating
+                break
 
 async def handle_ratings_command(message):
-    ratings = get_ratings()
-    sorted_ratings = sorted(ratings.items(), key=lambda x: x[0], reverse=True)
-    
+    dish_scores, max_score = get_ratings()
+
+    assign_nuanced_ratings(dish_scores, max_score)
+
     embed = discord.Embed(color=0x3498db)
-    
-    for rating_value, dish_infos in sorted_ratings:
-        category_dishes = {}  # Organize dishes by category
-        seen_dishes = {}
+    category_dishes = {}
 
-        for dish_info in dish_infos:
-            if not seen_dishes.get(dish_info.get('title')):
-                category_dishes.setdefault(dish_info.get('category'), []).append(dish_info.get('title'))
-            seen_dishes[dish_info.get('title')] = True
-        
-        sorted_categories = sorted(category_dishes.items())
+    for dish, info in dish_scores.items():
+        category = info['category']
+        rating = info['rating']
+        category_dishes.setdefault(category, []).append((dish, rating, info['final_score']))
 
-        dishes_display = []
-        for category, dishes in sorted_categories:
-            category_dishes_str = f"**{category}**\n" + "\n".join([f"- {dish}" for dish in dishes])
-            dishes_display.append(category_dishes_str)
-        
-        dishes_display_str = "\n".join(dishes_display)
-        dishes_display_str = dishes_display_str[:1024]  # Limit to 1024 characters
-        embed.add_field(name=f"{value_to_emoji(rating_value)}", value=dishes_display_str, inline=False)
+    for category, dishes in sorted(category_dishes.items()):
+        dishes_sorted = sorted(dishes, key=lambda x: x[2], reverse=True)
+        dishes_display_str = "\n".join([f"- {dish} {rating}" for dish, rating, score in dishes_sorted]) #,  {score:.2f}||)
+        embed.add_field(name=f"{category}", value=dishes_display_str[:1024], inline=False)
 
     await message.channel.send(embed=embed)
+
+    # sorted_ratings = sorted(ratings.items(), key=lambda x: x[0], reverse=True)
+    
+    # embed = discord.Embed(color=0x3498db)
+    
+    # for rating_value, dish_infos in sorted_ratings:
+    #     category_dishes = {}  # Organize dishes by category
+    #     seen_dishes = {}
+
+    #     for dish_info in dish_infos:
+    #         if not seen_dishes.get(dish_info.get('title')):
+    #             category_dishes.setdefault(dish_info.get('category'), []).append(dish_info.get('title'))
+    #         seen_dishes[dish_info.get('title')] = True
+        
+    #     sorted_categories = sorted(category_dishes.items())
+
+    #     dishes_display = []
+    #     for category, dishes in sorted_categories:
+    #         category_dishes_str = f"**{category}**\n" + "\n".join([f"- {dish}" for dish in dishes])
+    #         dishes_display.append(category_dishes_str)
+        
+    #     dishes_display_str = "\n".join(dishes_display)
+    #     dishes_display_str = dishes_display_str[:1024]  # Limit to 1024 characters
+    #     embed.add_field(name=f"{value_to_emoji(rating_value)}", value=dishes_display_str, inline=False)
+
+    # await message.channel.send(embed=embed)
 
 async def handle_profiles_command(message):
     profiles = load_profiles()
@@ -278,7 +314,8 @@ async def handle_default_command(message, client):
     if client.user.mentioned_in(message):
         # cut of start of message
         msg = message.content.split(">", 1)[1].strip()
-        await message.channel.send(f"Message without mentions: {msg}")
-        bot_answer = generate_response(msg)
-        bot_answer = randomize_text(bot_answer)
+        # await message.channel.send(f"Message without mentions: {msg}")
+        # bot_answer = generate_response(msg)
+        bot_answer = "Sorry, I'm not sure how to respond to that."
+        # bot_answer = randomize_text(bot_answer)
         await message.channel.send(bot_answer)

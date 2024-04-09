@@ -93,7 +93,7 @@ if __name__ == "__main__":
     from utils.user_management_helpers import set_user_profile
     from utils.order_management_helpers import save_order
 
-    for day_id in range(2080, 2148):
+    for day_id in range(2160, 2161):
         print(f"Fetching data for day {day_id}")
         users, orders = get_data(day_id)
 

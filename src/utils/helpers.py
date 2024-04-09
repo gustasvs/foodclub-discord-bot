@@ -121,8 +121,8 @@ def randomize_text(bot_answer):
         accents = {'a': 'á', 'u': 'ú'}
         return ''.join(accents.get(c, c) for c in text.lower())
 
-    transformations = [reverse_text, random_case, inject_emoji, decorate_text, add_punctuation, leet_speak, insert_random_words,
-        quote_text, duplicate_characters, add_accentuation]
+    transformations = [random_case, inject_emoji, decorate_text, add_punctuation, leet_speak,
+        quote_text, duplicate_characters]
 
     # Randomly choose one or more transformations to apply
     chosen_transformations = random.sample(transformations, k=random.randint(1, len(transformations)))

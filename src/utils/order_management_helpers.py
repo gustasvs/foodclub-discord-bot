@@ -8,10 +8,10 @@ def get_current_day():
     # 28.03.2024. should return 2148
     # 29.03.2024. should return 2149
     # etc 
-    base_date = datetime(2024, 3, 27)
+    base_date = datetime(2024, 4, 2)
     current_date = datetime.now()
     delta = current_date - base_date
-    return 2147 + delta.days
+    return 2161 + delta.days
 
 def save_order(new_order):
     try:
@@ -109,17 +109,41 @@ def get_ratings():
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
-    output = {}
+    scores = {}
+    
+
     for dish_id, dish_info in orders.items():
         for rating_info in dish_info['dish-ratings']:
-            rating = rating_info['rating']  # Extract the rating value
-            # Initialize the list for this rating if it doesn't exist
-            if rating not in output:
-                output[rating] = []
-            # Append the dish title to the list for this rating
-            output[rating].append({'title': dish_info['dish-title'], 'category': dish_info['dish-category-title']})
+            score = rating_info['rating']
+            title = dish_info['dish-title']
 
-    return output
+            if title in scores:
+                scores[title]['score'] += score
+                scores[title]['count'] += 1
+            else:
+                scores[title] = {'score': score, 'count': 1, 'category': dish_info['dish-category-title']}
+
+    max_score = 0
+    # average score multiplied by the times rated as to value better most popularily rated dishes
+    for title, info in scores.items():
+        info['final_score'] = (info['score'] / info['count']) + (info['count'] / 3)
+        if info['final_score'] > max_score:
+            max_score = info['final_score']
+        
+
+    return scores, max_score
+
+    # output = {}
+    # for dish_id, dish_info in orders.items():
+    #     for rating_info in dish_info['dish-ratings']:
+    #         rating = rating_info['rating']  # Extract the rating value
+    #         # Initialize the list for this rating if it doesn't exist
+    #         if rating not in output:
+    #             output[rating] = []
+    #         # Append the dish title to the list for this rating
+    #         output[rating].append({'title': dish_info['dish-title'], 'category': dish_info['dish-category-title']})
+
+    # return output
 
 def get_todays_orders():
     day_id = get_current_day()
