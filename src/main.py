@@ -12,7 +12,7 @@ tracked_messages = {}
 
 @tasks.loop(minutes=10)
 async def daily_reminder():
-    await handle_daily_reminder(client)
+    await handle_daily_reminder(client, tracked_messages)
 
 @client.event
 async def on_ready():

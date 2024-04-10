@@ -211,8 +211,13 @@ async def handle_profiles_command(message):
 
     await message.channel.send(embed=embed)
 
-async def handle_orders_command(message, tracked_messages):
+async def handle_orders_command(targets, tracked_messages):
     todays_orders = get_todays_orders()
+
+    if not todays_orders or len(todays_orders) == 0:
+        for target in targets:
+            await target.send("No orders were made today.")
+        return
 
     # get unique orders
     unique_orders = {order['dish-id']: order for order in todays_orders}.values()
@@ -232,11 +237,12 @@ async def handle_orders_command(message, tracked_messages):
         categorised_orders[category] = sorted_orders
 
     for category, orders in categorised_orders.items():
-        await message.channel.send(f"**{category}**")
-        for order in orders:
-            order_message = f"- {order['dish-title']}"
-            sent_message = await message.channel.send(order_message)
-            tracked_messages[sent_message.id] = order
+        for target in targets:
+            await target.send(f"**{category}**")
+            for order in orders:
+                order_message = f"- {order['dish-title']}"
+                sent_message = await target.send(order_message)
+                tracked_messages[sent_message.id] = order
 
 async def handle_spam_command(client, message):
     mention_id = message.mentions[0].id

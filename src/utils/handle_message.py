@@ -92,7 +92,7 @@ async def handle_on_message(
         case "profiles" | "users":
             await handle_profiles_command(message)
         case "orders":
-            await handle_orders_command(message, tracked_messages)
+            await handle_orders_command([message.channel], tracked_messages)
         case "logout":
             if message.author.name == admin_name or admin_required == False:
                 await message.channel.send(f"**logging out!**")
