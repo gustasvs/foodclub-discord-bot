@@ -1,29 +1,24 @@
 import io
 
 from utils.user_management_helpers import get_profile_from_discord
-from utils.order_management_helpers import save_order, rate_order, remove_rate_order
+from utils.order_management_helpers import save_order, rate_order, remove_rate_order, get_tracked_messages
 from utils.helpers import emoji_to_value, value_to_emoji, community_report
-from utils.bot_commands import (
-    handle_remindme_command,
-    handle_remindme_snooze_command,
-    handle_extract_command,
-    handle_link_command,
-    handle_ratings_command,
-    handle_profiles_command,
-    handle_orders_command,
-    handle_help_command,
-    handle_spam_command,
-    handle_online_command,
-    handle_total_command,
-    handle_exit_command,
-    handle_default_command,
-)
+from utils.transcription.transcriber import handle_audio_attachment
 
-async def handle_reaction_add(client, reaction, user, tracked_messages):
+async def handle_reaction_add(client, reaction, user):
+
+    tracked_messages = get_tracked_messages()
 
     await reaction.message.channel.typing()
 
-    if reaction.message.id in tracked_messages and user != client.user:
+    reaction_id = str(reaction.message.id)
+
+    # print("Tracked messages: ", tracked_messages)
+
+    # print("Reaction ID: ", reaction_id)
+
+
+    if reaction_id in tracked_messages and user != client.user:
         print(reaction.emoji, str(reaction.emoji))
         reaction_value = emoji_to_value(str(reaction.emoji))
 
@@ -32,17 +27,24 @@ async def handle_reaction_add(client, reaction, user, tracked_messages):
             await reaction.message.channel.send(f"User {user.display_name} not found in database")
             return
 
-        await reaction.message.channel.send(f"{user_profile.get('name-fc')} rated **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction.message.id]['dish-title']}")
+        await reaction.message.channel.send(f"{user_profile.get('name-fc')} rated **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction_id]['dish-title']}")
 
         date = reaction.message.created_at.strftime("%Y-%m-%d")
 
-        rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
+        rate_order(tracked_messages[reaction_id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
+    else:
+        print("Reaction not found in tracked messages")
+        await reaction.message.channel.send("Reaction not found in tracked messages")
 
 
-async def handle_reaction_remove(client, reaction, user, tracked_messages):
+async def handle_reaction_remove(client, reaction, user):
     await reaction.message.channel.typing()
 
-    if reaction.message.id in tracked_messages and user != client.user:
+    tracked_messages = get_tracked_messages()
+
+    reaction_id = str(reaction.message.id)
+
+    if reaction_id in tracked_messages and user != client.user:
         print(f"Reaction {reaction.emoji} removed by {user.display_name}")
         reaction_value = emoji_to_value(str(reaction.emoji))
 
@@ -51,72 +53,40 @@ async def handle_reaction_remove(client, reaction, user, tracked_messages):
             await reaction.message.channel.send(f"User {user.display_name} not found in database")
             return
 
-        await reaction.message.channel.send(f"{user_profile.get('name-fc')} removed rating **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction.message.id]['dish-title']}")
+        await reaction.message.channel.send(f"{user_profile.get('name-fc')} removed rating **{value_to_emoji(reaction_value)}** for dish {tracked_messages[reaction_id]['dish-title']}")
 
         date = reaction.message.created_at.strftime("%Y-%m-%d")
 
-        remove_rate_order(tracked_messages[reaction.message.id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
+        remove_rate_order(tracked_messages[reaction_id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
 
 
 async def handle_on_message(
-    client, message, bot_name, admin_name, admin_required, bot_id, current_guild, tracked_messages
+    client, message, bot_name, admin_name, admin_required, bot_id, current_guild
 ):
-    msg = message.content
-
-    message_stats_for_logs = f"{message.channel}/{message.author} - {msg}"
-    with io.open("secret/log.txt", "a", encoding="utf-8") as f:
-        f.write(f"{message_stats_for_logs}\n")
-
+    
     if not message_acceptable(message, bot_name):
         return
     
-    try: 
-        await message.channel.typing()
-    except Exception as e:
-        print(f"error: {e}")
-        pass
+    
+    # if message had audio attachment handle it and return
+    if await handle_audio_attachment(message): 
+        return
 
-    match msg.lower().split(" ")[0]:
-        case "remindme":
-            await handle_remindme_command(message)
-        case "pause":
-            await handle_remindme_snooze_command(message, True)
-        case "resume":
-            await handle_remindme_snooze_command(message, False)
-        case "extract":
-            await handle_extract_command(message)
-        case "link":
-            await handle_link_command(message)
-        case "ratings":
-            await handle_ratings_command(message)
-        case "profiles" | "users":
-            await handle_profiles_command(message)
-        case "orders":
-            await handle_orders_command([message.channel], tracked_messages)
-        case "logout":
-            if message.author.name == admin_name or admin_required == False:
-                await message.channel.send(f"**logging out!**")
-                await client.close()
-                exit(0)
-            else:
-                await message.channel.send(f"*permission denied*")
-        case "exit":
-            await handle_exit_command(message, client, admin_name, admin_required)
-        case "help":
-            await handle_help_command(message)
-        case "spam":
-            await handle_spam_command(client, message)
-        case "online":
-            await handle_online_command(message, current_guild)
-        case "total":
-            await handle_total_command(message, current_guild)
-        case _:
-            await handle_default_command(message, client)
+    message_stats_for_logs = f"{message.channel}/{message.author} - {message.content}"
+    with io.open("secret/log.txt", "a", encoding="utf-8") as f:
+        f.write(f"{message_stats_for_logs}\n")
+
+    # generated_response = generate_response(message.content)
+
+    # await message.channel.send(f"Message received: {message.content}")
+
 
 def message_acceptable(message, bot_name=""):
+    if message is None and message.attachments is None:
+        return False
     if message.author.name == bot_name:
         return False
-    if str(message.content)[0] == "!":
+    if (message is not None or message is not "") and str(message.content)[0] == "!":
         return False
     if message.author.bot:
         return False
