@@ -1,17 +1,18 @@
 import json
 from datetime import datetime
 
-from public.settings import ORDER_PATH
+from public.settings import ORDER_PATH, TRACKED_MESSAGES_PATH
 from fetch_foodclub import get_data
 
 def get_current_day():
     # 28.03.2024. should return 2148
     # 29.03.2024. should return 2149
+    # 30.04.2024. should return 2227
     # etc 
-    base_date = datetime(2024, 4, 2)
+    base_date = datetime(2024, 5, 1)
     current_date = datetime.now()
     delta = current_date - base_date
-    return 2161 + delta.days
+    return 2227 + delta.days
 
 def save_order(new_order):
     try:
@@ -144,6 +145,21 @@ def get_ratings():
     #         output[rating].append({'title': dish_info['dish-title'], 'category': dish_info['dish-category-title']})
 
     # return output
+
+def get_tracked_messages():
+    try:
+        with open(TRACKED_MESSAGES_PATH, 'r') as file:
+            tracked_messages = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    
+    return tracked_messages
+
+def save_tracked_message(message_id, order):
+    tracked_messages = get_tracked_messages()
+    tracked_messages[message_id] = order
+    with open(TRACKED_MESSAGES_PATH, 'w') as file:
+        json.dump(tracked_messages, file, indent=4)
 
 def get_todays_orders():
     day_id = get_current_day()

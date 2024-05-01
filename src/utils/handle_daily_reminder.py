@@ -6,9 +6,9 @@ from utils.user_management_helpers import load_profiles
 from utils.order_management_helpers import get_todays_users
 from utils.bot_commands import handle_orders_command
 
-channel_ids = [1221861873532797081]  
+channel_ids = [1221861873532797081]
 
-async def handle_daily_reminder(client, tracked_messages):
+async def handle_daily_reminder(client):
     now = datetime.now()
     print("Current time: ", now.hour, "-", now.minute, "-")
     if now.hour > 8 and (now.hour < 9 or (now.hour == 9 and now.minute < 30)):
@@ -57,4 +57,4 @@ async def handle_daily_reminder(client, tracked_messages):
             await discord_user.send(reminder_message)
     elif now.hour == 12 and now.minute < 10:
         channels = [client.get_channel(channel_id) for channel_id in channel_ids]
-        await handle_orders_command(channels, tracked_messages)
+        await handle_orders_command(channels)

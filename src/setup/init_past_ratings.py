@@ -1,3 +1,4 @@
+#! before running this script you have to extract past ratings from a discord channel using "extract" command
 import json
 from utils.order_management_helpers import rate_order_by_dish_title
 from utils.user_management_helpers import get_profile_from_discord

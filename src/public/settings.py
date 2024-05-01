@@ -11,5 +11,6 @@ FF_WEBDRIVER_PATH = "public/geckodriver.exe"
 
 CACHE_PATH = 'secret/cache'
 ORDER_PATH = 'secret/orders.json'
+TRACKED_MESSAGES_PATH = 'secret/tracked_messages.json'
 USER_PROFILES_PATH = 'secret/users.json'
 BOT_CREDENTIALS_PATH = 'secret/bot_credentials'
