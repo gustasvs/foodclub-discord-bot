@@ -34,7 +34,7 @@ async def handle_reaction_add(client, reaction, user):
         rate_order(tracked_messages[reaction_id]['dish-id'], user_profile.get('user-id'), reaction_value, date)
     else:
         print("Reaction not found in tracked messages")
-        await reaction.message.channel.send("Reaction not found in tracked messages")
+        # await reaction.message.channel.send("Reaction not found in tracked messages")
 
 
 async def handle_reaction_remove(client, reaction, user):
@@ -63,14 +63,27 @@ async def handle_reaction_remove(client, reaction, user):
 async def handle_on_message(
     client, message, bot_name, admin_name, admin_required, bot_id, current_guild
 ):
-    
     if not message_acceptable(message, bot_name):
         return
-    
     
     # if message had audio attachment handle it and return
     if await handle_audio_attachment(message): 
         return
+    
+    if message.content.startswith("transcribe"):
+        print(message.reference)
+        if message.reference is None:
+            await message.channel.send("Please reply to a message to transcribe it.")
+            return
+        replied_message = message.reference.cached_message
+        if replied_message is None:
+            try:
+                replied_message = await message.channel.fetch_message(message.reference.message_id)
+            except: 
+                await message.channel.send("Could not find the replied message.")
+                return
+        await handle_audio_attachment(replied_message)
+
 
     message_stats_for_logs = f"{message.channel}/{message.author} - {message.content}"
     with io.open("secret/log.txt", "a", encoding="utf-8") as f:
@@ -81,12 +94,8 @@ async def handle_on_message(
     # await message.channel.send(f"Message received: {message.content}")
 
 
-def message_acceptable(message, bot_name=""):
-    if message is None and message.attachments is None:
-        return False
+def message_acceptable(message="", bot_name=""):
     if message.author.name == bot_name:
-        return False
-    if (message is not None or message is not "") and str(message.content)[0] == "!":
         return False
     if message.author.bot:
         return False
